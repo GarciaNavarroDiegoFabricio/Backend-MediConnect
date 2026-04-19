@@ -11,7 +11,7 @@
 	<groupId>com.Backend</groupId>
 	<artifactId>MediConnect</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name/>
+	<name>BackendMediConnect</name>
 	<description/>
 	<url/>
 	<licenses>
