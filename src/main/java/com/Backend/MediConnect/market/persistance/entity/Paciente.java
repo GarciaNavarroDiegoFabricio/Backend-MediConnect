@@ -1,6 +1,5 @@
 package com.Backend.MediConnect.market.persistance.entity;
 
-import com.Backend.MediConnect.market.domain.Usuario;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;

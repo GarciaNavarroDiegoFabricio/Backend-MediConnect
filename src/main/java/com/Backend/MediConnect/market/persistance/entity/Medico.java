@@ -1,5 +1,6 @@
 package com.Backend.MediConnect.market.persistance.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -31,6 +32,7 @@ public class Medico {
     private Boolean disponible;
 
     @OneToMany(mappedBy = "medico")
+    @JsonIgnore
     private List<Horario> horarios;
 
     @ManyToMany

@@ -24,6 +24,8 @@ public class Notificacion {
     @JoinColumn(name = "id_cita")
     private Cita cita;
 
+    private Boolean visto;
+
     public Notificacion(){};
 
     public Integer getIdNotificacion() {
@@ -64,5 +66,13 @@ public class Notificacion {
 
     public void setCita(Cita cita) {
         this.cita = cita;
+    }
+
+    public Boolean getVisto() {
+        return visto;
+    }
+
+    public void setVisto(Boolean visto) {
+        this.visto = visto;
     }
 }
