@@ -2,6 +2,8 @@ package com.Backend.MediConnect.market.persistance.entity;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDate;
+
 @Entity
 @Table(name = "RECETA")
 public class Receta {
@@ -21,6 +23,12 @@ public class Receta {
     @ManyToOne
     @JoinColumn(name = "id_consulta")
     private Consulta consulta;
+
+    @Column(name = "prescripcion", columnDefinition = "TEXT", nullable = false)
+    private String prescripcion;
+
+    @Column(name = "fecha", nullable = false)
+    private LocalDate fecha;
 
     public Receta(){};
 
@@ -54,5 +62,21 @@ public class Receta {
 
     public void setConsulta(Consulta consulta) {
         this.consulta = consulta;
+    }
+
+    public String getPrescripcion() {
+        return prescripcion;
+    }
+
+    public void setPrescripcion(String prescripcion) {
+        this.prescripcion = prescripcion;
+    }
+
+    public LocalDate getFecha() {
+        return fecha;
+    }
+
+    public void setFecha(LocalDate fecha) {
+        this.fecha = fecha;
     }
 }

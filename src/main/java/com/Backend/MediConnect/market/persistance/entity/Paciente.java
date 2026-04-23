@@ -20,6 +20,9 @@ public class Paciente {
     private String segundoNombre;
 
     @Column(name = "primer_apellido")
+    private String primerApellido;
+
+    @Column(name = "segundo_apellido")
     private String segundoApellido;
 
     @Column(name = "dni", length = 8, nullable = false, unique = true)
@@ -185,5 +188,13 @@ public class Paciente {
 
     public void setCitas(List<Cita> citas) {
         this.citas = citas;
+    }
+
+    public String getPrimerApellido() {
+        return primerApellido;
+    }
+
+    public void setPrimerApellido(String primerApellido) {
+        this.primerApellido = primerApellido;
     }
 }
