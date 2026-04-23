@@ -8,6 +8,7 @@ import com.Backend.MediConnect.market.web.security.JwtUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -20,6 +21,7 @@ public class UsuarioService implements IUsuarioService {
     private final AdminTotalRepository adminTotalRepo;
     private final SedeRepository sedeRepo;
     private final EspecialidadRepository especialidadRepo;
+    private final ReniecService reniecService;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
 
@@ -30,6 +32,7 @@ public class UsuarioService implements IUsuarioService {
                           AdminTotalRepository adminTotalRepo,
                           SedeRepository sedeRepo,
                           EspecialidadRepository especialidadRepo,
+                          ReniecService reniecService,
                           JwtUtil jwtUtil,
                           PasswordEncoder passwordEncoder) {
         this.usuarioRepo = usuarioRepo;
@@ -39,6 +42,7 @@ public class UsuarioService implements IUsuarioService {
         this.adminTotalRepo = adminTotalRepo;
         this.sedeRepo = sedeRepo;
         this.especialidadRepo = especialidadRepo;
+        this.reniecService = reniecService;
         this.jwtUtil = jwtUtil;
         this.passwordEncoder = passwordEncoder;
     }
@@ -60,22 +64,33 @@ public class UsuarioService implements IUsuarioService {
     @Transactional
     public AuthResponse registrarPaciente(RegistroPacienteDTO dto) {
         if (usuarioRepo.existsByDni(dto.getDni()))
-            throw new RuntimeException("DNI ya registrado");
+            throw new RuntimeException("DNI ya registrado en el sistema.");
+
+        ReniecResponseDTO reniec = reniecService.consultarDni(dto.getDni());
+
+        if (!reniec.isEncontrado())
+            throw new RuntimeException(
+                    "No se encontraron datos en RENIEC para el DNI ingresado. " +
+                            "Por favor comuníquese con un administrador para registrar sus datos manualmente."
+            );
 
         Paciente paciente = new Paciente();
-        paciente.setPrimerNombre(dto.getPrimerNombre());
-        paciente.setSegundoNombre(dto.getSegundoNombre());
-        paciente.setPrimerApellido(dto.getPrimerApellido());
-        paciente.setSegundoApellido(dto.getSegundoApellido());
         paciente.setDni(dto.getDni());
         paciente.setCorreo(dto.getCorreo());
         paciente.setTelefono(dto.getTelefono());
-        paciente.setFechaNacimiento(dto.getFechaNacimiento());
-        paciente.setUbigeo(dto.getUbigeo());
+        paciente.setPrimerNombre(reniec.getNombres());
+        paciente.setPrimerApellido(reniec.getApellidoPaterno());
+        paciente.setSegundoApellido(reniec.getApellidoMaterno());
+        paciente.setSegundoNombre("");
+        paciente.setUbigeo(reniec.getUbigeo());
+
+        if (reniec.getFechaNacimiento() != null && !reniec.getFechaNacimiento().isEmpty())
+            paciente.setFechaNacimiento(LocalDate.parse(reniec.getFechaNacimiento()));
+
         pacienteRepo.save(paciente);
 
         return crearUsuarioYToken(dto.getDni(), dto.getPassword(), "PACIENTE",
-                dto.getPrimerNombre() + " " + dto.getPrimerApellido());
+                reniec.getNombres() + " " + reniec.getApellidoPaterno());
     }
 
     @Override

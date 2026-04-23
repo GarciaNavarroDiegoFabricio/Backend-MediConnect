@@ -37,6 +37,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin-total/**").hasRole("ADMIN_TOTAL")
                         .requestMatchers("/api/sedes/**").authenticated()
                         .requestMatchers("/api/especialidades/**").authenticated()
+                        .requestMatchers("/api/reniec/**").hasAnyRole("ADMIN_LOCAL", "ADMIN_TOTAL")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
