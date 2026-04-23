@@ -8,6 +8,7 @@ import com.Backend.MediConnect.market.web.security.JwtUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
 
 @Service
 public class UsuarioService implements IUsuarioService {
@@ -18,6 +19,7 @@ public class UsuarioService implements IUsuarioService {
     private final AdminLocalRepository adminLocalRepo;
     private final AdminTotalRepository adminTotalRepo;
     private final SedeRepository sedeRepo;
+    private final EspecialidadRepository especialidadRepo;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
 
@@ -27,6 +29,7 @@ public class UsuarioService implements IUsuarioService {
                           AdminLocalRepository adminLocalRepo,
                           AdminTotalRepository adminTotalRepo,
                           SedeRepository sedeRepo,
+                          EspecialidadRepository especialidadRepo,
                           JwtUtil jwtUtil,
                           PasswordEncoder passwordEncoder) {
         this.usuarioRepo = usuarioRepo;
@@ -35,6 +38,7 @@ public class UsuarioService implements IUsuarioService {
         this.adminLocalRepo = adminLocalRepo;
         this.adminTotalRepo = adminTotalRepo;
         this.sedeRepo = sedeRepo;
+        this.especialidadRepo = especialidadRepo;
         this.jwtUtil = jwtUtil;
         this.passwordEncoder = passwordEncoder;
     }
@@ -44,9 +48,8 @@ public class UsuarioService implements IUsuarioService {
         Usuario usuario = usuarioRepo.findByDni(request.getDni())
                 .orElseThrow(() -> new RuntimeException("Credenciales inválidas"));
 
-        if (!passwordEncoder.matches(request.getPassword(), usuario.getPassword())) {
+        if (!passwordEncoder.matches(request.getPassword(), usuario.getPassword()))
             throw new RuntimeException("Credenciales inválidas");
-        }
 
         String nombre = resolverNombre(usuario.getDni(), usuario.getRol());
         String token = jwtUtil.generarToken(usuario.getDni(), usuario.getRol());
@@ -117,9 +120,25 @@ public class UsuarioService implements IUsuarioService {
 
     @Override
     @Transactional
-    public AuthResponse registrarMedico(RegistroMedicoDTO dto) {
+    public AuthResponse registrarMedico(RegistroMedicoDTO dto, String dniRegistrador, String rolRegistrador) {
         if (usuarioRepo.existsByDni(dto.getDni()))
             throw new RuntimeException("DNI ya registrado");
+
+        Sede sede;
+        if (rolRegistrador.equals("ROLE_ADMIN_LOCAL")) {
+            AdministadorLocal adminLocal = adminLocalRepo.findByDni(dniRegistrador)
+                    .orElseThrow(() -> new RuntimeException("Admin Local no encontrado"));
+            sede = adminLocal.getSede();
+        } else {
+            if (dto.getIdSede() == null)
+                throw new RuntimeException("El Admin Total debe especificar una sede");
+            sede = sedeRepo.findById(dto.getIdSede())
+                    .orElseThrow(() -> new RuntimeException("Sede no encontrada"));
+        }
+
+        List<Especialidad> especialidades = especialidadRepo.findAllById(dto.getIdEspecialidades());
+        if (especialidades.isEmpty())
+            throw new RuntimeException("Debe asignar al menos una especialidad válida");
 
         Medico medico = new Medico();
         medico.setPrimerNombre(dto.getPrimerNombre());
@@ -129,14 +148,15 @@ public class UsuarioService implements IUsuarioService {
         medico.setDni(dto.getDni());
         medico.setEdad(dto.getEdad());
         medico.setDisponible(true);
+        medico.setEspecialidades(especialidades);
+        medico.setSedes(List.of(sede));
         medicoRepo.save(medico);
 
         return crearUsuarioYToken(dto.getDni(), dto.getPassword(), "MEDICO",
                 dto.getPrimerNombre() + " " + dto.getPrimerApellido());
     }
 
-    private AuthResponse crearUsuarioYToken(String dni, String rawPassword,
-                                            String rol, String nombre) {
+    private AuthResponse crearUsuarioYToken(String dni, String rawPassword, String rol, String nombre) {
         Usuario usuario = new Usuario();
         usuario.setDni(dni);
         usuario.setPassword(passwordEncoder.encode(rawPassword));

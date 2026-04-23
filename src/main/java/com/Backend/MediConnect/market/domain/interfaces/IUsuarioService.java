@@ -7,5 +7,5 @@ public interface IUsuarioService {
     AuthResponse registrarPaciente(RegistroPacienteDTO dto);
     AuthResponse registrarAdminLocal(RegistroAdminLocalDTO dto);
     AuthResponse registrarAdminTotal(RegistroAdminTotalDTO dto);
-    AuthResponse registrarMedico(RegistroMedicoDTO dto);
+    AuthResponse registrarMedico(RegistroMedicoDTO dto, String dniRegistrador, String rolRegistrador);
 }

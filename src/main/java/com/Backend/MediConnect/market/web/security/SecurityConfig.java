@@ -26,18 +26,17 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Registro abierto solo para pacientes y login general
                         .requestMatchers("/api/auth/login").permitAll()
                         .requestMatchers("/api/auth/registro/paciente").permitAll()
-                        // Registro AdminTotal: requiere JWT de ADMIN_TOTAL
-                        .requestMatchers("/api/auth/registro/admin-total")
-                        .hasRole("ADMIN_TOTAL")
-                        // Registro AdminLocal: requiere JWT de ADMIN_TOTAL
-                        .requestMatchers("/api/auth/registro/admin-local")
-                        .hasRole("ADMIN_TOTAL")
-                        // Registro Medico: requiere JWT de ADMIN_LOCAL o ADMIN_TOTAL
-                        .requestMatchers("/api/auth/registro/medico")
-                        .hasAnyRole("ADMIN_LOCAL", "ADMIN_TOTAL")
+                        .requestMatchers("/api/auth/registro/admin-total").hasRole("ADMIN_TOTAL")
+                        .requestMatchers("/api/auth/registro/admin-local").hasRole("ADMIN_TOTAL")
+                        .requestMatchers("/api/auth/registro/medico").hasAnyRole("ADMIN_LOCAL", "ADMIN_TOTAL")
+                        .requestMatchers("/api/paciente/**").hasRole("PACIENTE")
+                        .requestMatchers("/api/medico/**").hasRole("MEDICO")
+                        .requestMatchers("/api/admin-local/**").hasAnyRole("ADMIN_LOCAL", "ADMIN_TOTAL")
+                        .requestMatchers("/api/admin-total/**").hasRole("ADMIN_TOTAL")
+                        .requestMatchers("/api/sedes/**").authenticated()
+                        .requestMatchers("/api/especialidades/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

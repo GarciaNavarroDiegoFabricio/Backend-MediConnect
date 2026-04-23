@@ -1,40 +1,36 @@
 package com.Backend.MediConnect.market.web.controller;
 
-import com.Backend.MediConnect.market.domain.dto.cancelarCitaDTO;
-import com.Backend.MediConnect.market.domain.dto.consultarCitaDTO;
-import com.Backend.MediConnect.market.domain.dto.crearCitaDTO;
-import com.Backend.MediConnect.market.domain.service.CitaService;
-import com.Backend.MediConnect.market.persistance.entity.Cita;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.Backend.MediConnect.market.domain.dto.CitaDTO;
+import com.Backend.MediConnect.market.domain.dto.CitaResponseDTO;
+import com.Backend.MediConnect.market.domain.interfaces.IPacienteService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
-@RequestMapping("/pacientes")
+@RequestMapping("/api/paciente")
 public class PacienteController {
 
-    @Autowired
-    private CitaService citaService;
+    private final IPacienteService pacienteService;
 
-    @PostMapping("/crearCita")
-    public ResponseEntity<consultarCitaDTO> crearCita(@RequestBody crearCitaDTO request){
-        return ResponseEntity.ok(citaService.crearCita(request));
+    public PacienteController(IPacienteService pacienteService) {
+        this.pacienteService = pacienteService;
     }
 
-    @GetMapping("/consultarCita/{id}")
-    public ResponseEntity<List<consultarCitaDTO>> consultarCita(@PathVariable Integer id){
-        List<consultarCitaDTO> citasPaciente = citaService.obtenerCitasPorPaciente(id);
-        return ResponseEntity.ok(citasPaciente);
+    @PostMapping("/cita")
+    public ResponseEntity<CitaResponseDTO> generarCita(@RequestBody CitaDTO dto, Authentication auth) {
+        return ResponseEntity.ok(pacienteService.generarCita(auth.getName(), dto));
     }
 
-    @GetMapping("/cancelarCita/{idCita}/{idPaciente}")
-    public ResponseEntity<cancelarCitaDTO> cancelarCita(@PathVariable Integer idCita, @PathVariable Integer idPaciente){
-        cancelarCitaDTO citaCancelada = citaService.cancelarCita(idCita, idPaciente);
-        return ResponseEntity.ok(citaCancelada);
+    @GetMapping("/citas")
+    public ResponseEntity<List<CitaResponseDTO>> consultarCitas(Authentication auth) {
+        return ResponseEntity.ok(pacienteService.consultarCitas(auth.getName()));
     }
 
-
-
+    @PutMapping("/cita/{idCita}/cancelar")
+    public ResponseEntity<Void> cancelarCita(@PathVariable Integer idCita, Authentication auth) {
+        pacienteService.cancelarCita(auth.getName(), idCita);
+        return ResponseEntity.noContent().build();
+    }
 }
