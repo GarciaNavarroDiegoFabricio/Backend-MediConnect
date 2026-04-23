@@ -31,7 +31,7 @@ public class ReporteService {
         int pendientes = 0;
 
         for (Cita cita : citas) {
-            // Se convierte el estado a minúsculas para evitar problemas de comparación
+            // Se convierte el estado a minúsculas para evitar problemas de comparaci0n
             switch (cita.getEstado().toLowerCase()) {
                 case "atendida":
                     atendidas++;
