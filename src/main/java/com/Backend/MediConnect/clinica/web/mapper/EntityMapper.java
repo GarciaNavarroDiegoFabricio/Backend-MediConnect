@@ -57,6 +57,21 @@ public class EntityMapper {
         return dto;
     }
 
+    public static PacienteResponseDTO toPacienteResponse(Paciente paciente) {
+        PacienteResponseDTO dto = new PacienteResponseDTO();
+        dto.setIdPaciente(paciente.getIdPaciente());
+        dto.setPrimerNombre(paciente.getPrimerNombre());
+        dto.setSegundoNombre(paciente.getSegundoNombre());
+        dto.setPrimerApellido(paciente.getPrimerApellido());
+        dto.setSegundoApellido(paciente.getSegundoApellido());
+        dto.setDni(paciente.getDni());
+        dto.setCorreo(paciente.getCorreo());
+        dto.setTelefono(paciente.getTelefono());
+        dto.setFechaNacimiento(paciente.getFechaNacimiento());
+        dto.setUbigeo(paciente.getUbigeo());
+        return dto;
+    }
+
     public static HorarioResponseDTO toHorarioResponse(Horario horario) {
         HorarioResponseDTO dto = new HorarioResponseDTO();
         dto.setIdHorario(horario.getIdHorario());
