@@ -140,4 +140,17 @@ public class EntityMapper {
         dto.setUbicacion(sede.getUbicacion());
         return dto;
     }
+    public static PacienteBusquedaDTO toPacienteBusquedaDTO(Paciente paciente) {
+        PacienteBusquedaDTO dto = new PacienteBusquedaDTO();
+        dto.setIdPaciente(paciente.getIdPaciente());
+        dto.setDni(paciente.getDni());
+        dto.setNombreCompleto(paciente.getPrimerNombre() + " " + paciente.getPrimerApellido());
+        dto.setCorreo(paciente.getCorreo());
+        dto.setTelefono(paciente.getTelefono());
+        
+        if (paciente.getHistoriaClinica() != null) {
+            dto.setIdHistoriaClinica(paciente.getHistoriaClinica().getIdHistoria());
+        }
+        return dto;
+    }
 }

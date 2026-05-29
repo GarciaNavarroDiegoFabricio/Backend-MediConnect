@@ -5,6 +5,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import com.Backend.MediConnect.clinica.domain.dto.CitaResponseDTO;
+import com.Backend.MediConnect.clinica.domain.dto.PacienteBusquedaDTO;
 import com.Backend.MediConnect.clinica.domain.dto.RecetaDTO;
 import com.Backend.MediConnect.clinica.domain.dto.RecetaResponseDTO;
 import com.Backend.MediConnect.clinica.domain.dto.ReporteResponseDTO;
@@ -41,5 +42,10 @@ public class MedicoController {
     @GetMapping("/reservas")
     public ResponseEntity<List<CitaResponseDTO>> consultarReservas(Authentication auth) {
         return ResponseEntity.ok(medicoService.consultarReservas(auth.getName()));
+    }
+    @GetMapping("/pacientes/buscar")
+    public ResponseEntity<List<PacienteBusquedaDTO>> buscarPacientes(@RequestParam String termino) {
+        List<PacienteBusquedaDTO> resultados = medicoService.buscarPacientes(termino);
+        return ResponseEntity.ok(resultados);
     }
 }
