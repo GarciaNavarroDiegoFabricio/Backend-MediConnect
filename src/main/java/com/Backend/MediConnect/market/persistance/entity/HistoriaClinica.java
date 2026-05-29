@@ -79,4 +79,12 @@ public class HistoriaClinica {
     public void setEnfermedadesPasadas(String enfermedadesPasadas) {
         this.enfermedadesPasadas = enfermedadesPasadas;
     }
+    
+    public String getCodigoUnico() {
+        return codigoUnico;
+    }
+
+    public void setCodigoUnico(String codigoUnico) {
+        this.codigoUnico = codigoUnico;
+    }
 }
