@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.Backend.MediConnect.clinica.domain.dto.CitaResponseDTO;
+import com.Backend.MediConnect.clinica.domain.dto.PacienteBusquedaDTO;
 import com.Backend.MediConnect.clinica.domain.dto.RecetaDTO;
 import com.Backend.MediConnect.clinica.domain.dto.RecetaResponseDTO;
 import com.Backend.MediConnect.clinica.domain.dto.ReporteResponseDTO;
@@ -103,4 +104,11 @@ public class MedicoService implements IMedicoService {
                                 .map(EntityMapper::toCitaResponse)
                                 .collect(Collectors.toList());
         }
+        @Override
+        public List<PacienteBusquedaDTO> buscarPacientes(String termino) {
+        return pacienteRepo.buscarPacientesPorFiltro(termino)
+                .stream()
+                .map(EntityMapper::toPacienteBusquedaDTO)
+                .toList(); 
+    }
 }
