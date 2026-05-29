@@ -38,6 +38,9 @@ public class HistoriaClinica {
         this.idHistoria = idHistoria;
     }
 
+    @Column(name ="codigo_unico", unique = true)
+    private String codigoUnico;
+    
     public LocalDate getFecha() {
         return fecha;
     }
@@ -76,5 +79,13 @@ public class HistoriaClinica {
 
     public void setEnfermedadesPasadas(String enfermedadesPasadas) {
         this.enfermedadesPasadas = enfermedadesPasadas;
+    }
+    
+    public String getCodigoUnico() {
+        return codigoUnico;
+    }
+
+    public void setCodigoUnico(String codigoUnico) {
+        this.codigoUnico = codigoUnico;
     }
 }
