@@ -13,4 +13,6 @@ public class AdminLocalResponseDTO {
     private String segundoApellido;
     private String dni;
     private String nombreSede;
+    private String estado;     // 👈 AGREGADO: Para activar/desactivar/suspender
+    private Integer idSede;    // 👈 AGREGADO: Para el ID de la sede en el CRUD
 }

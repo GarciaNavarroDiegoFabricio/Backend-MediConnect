@@ -1,18 +1,25 @@
 package com.Backend.MediConnect.clinica.domain.services;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.Backend.MediConnect.clinica.domain.dto.*;
+import com.Backend.MediConnect.clinica.domain.dto.AdminLocalResponseDTO;
+import com.Backend.MediConnect.clinica.domain.dto.AuthResponse;
+import com.Backend.MediConnect.clinica.domain.dto.EditarAdminLocalDTO;
+import com.Backend.MediConnect.clinica.domain.dto.RegistroAdminLocalDTO;
 import com.Backend.MediConnect.clinica.domain.interfaces.IAdminTotalService;
-import com.Backend.MediConnect.clinica.domain.repository.*;
-import com.Backend.MediConnect.clinica.persistance.entity.*;
-import com.Backend.MediConnect.clinica.web.mapper.EntityMapper;
+import com.Backend.MediConnect.clinica.domain.repository.AdminLocalRepository;
+import com.Backend.MediConnect.clinica.domain.repository.SedeRepository;
+import com.Backend.MediConnect.clinica.domain.repository.UsuarioRepository;
+import com.Backend.MediConnect.clinica.persistance.entity.AdministadorLocal;
+import com.Backend.MediConnect.clinica.persistance.entity.Sede;
+import com.Backend.MediConnect.clinica.persistance.entity.Usuario;
+import com.Backend.MediConnect.clinica.web.mapper.AdminLocalMapper;
 import com.Backend.MediConnect.clinica.web.security.JwtUtil;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class AdminTotalService implements IAdminTotalService {
@@ -88,14 +95,13 @@ public class AdminTotalService implements IAdminTotalService {
         admin.setSegundoApellido(dto.getSegundoApellido());
         admin.setSede(sede);
 
-        return EntityMapper.toAdminLocalResponse(adminLocalRepo.save(admin));
+       return AdminLocalMapper.toResponse(adminLocalRepo.save(admin));
     }
 
-    @Override
-    public List<AdminLocalResponseDTO> consultarAdminLocales() {
-        return adminLocalRepo.findAll()
-                .stream()
-                .map(EntityMapper::toAdminLocalResponse)
-                .collect(Collectors.toList());
-    }
+public List<AdminLocalResponseDTO> consultarAdminLocales() {
+    return adminLocalRepo.findAll()
+            .stream()
+            .map(AdminLocalMapper::toResponse) // 👈 Cambia esta línea aquí
+            .collect(Collectors.toList());
+}
 }

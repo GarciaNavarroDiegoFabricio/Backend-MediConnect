@@ -1,8 +1,9 @@
 package com.Backend.MediConnect.clinica.domain.dto;
 
+import java.util.List;
+
 import lombok.Getter;
 import lombok.Setter;
-import java.util.List;
 
 @Getter
 @Setter
@@ -15,6 +16,7 @@ public class MedicoResponseDTO {
     private String dni;
     private Integer edad;
     private Boolean disponible;
+    private String estado; // 👈 AGREGADO: Para activar/desactivar/suspender
     private List<String> especialidades;
     private List<String> sedes;
 }

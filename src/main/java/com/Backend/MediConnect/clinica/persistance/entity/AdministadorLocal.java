@@ -1,8 +1,16 @@
 package com.Backend.MediConnect.clinica.persistance.entity;
 
-import jakarta.persistence.*;
-
 import java.util.List;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "ADMINISTRADOR_LOCAL")
@@ -27,6 +35,11 @@ public class AdministadorLocal {
     @Column(name = "dni", length = 8, nullable = false, unique = true)
     private String dni;
 
+    // REQUISITO FUNCIONAL: Estado para Activar, Desactivar o Suspender
+    // Se fuerza el nombre 'status' en la BD para evitar bloqueos del hosting remoto
+    @Column(name = "status", length = 255, nullable = true)
+    private String estado;
+
     @ManyToOne
     @JoinColumn(name = "id_sede")
     private Sede sede;
@@ -35,7 +48,7 @@ public class AdministadorLocal {
     private List<Reporte> reportes;
 
     public AdministadorLocal() {
-    };
+    }
 
     public Integer getIdAdminLocal() {
         return idAdminLocal;
@@ -83,6 +96,14 @@ public class AdministadorLocal {
 
     public void setDni(String dni) {
         this.dni = dni;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
     }
 
     public Sede getSede() {

@@ -17,4 +17,7 @@ public interface IAdminLocalService {
     void bloquearHorario(Integer idHorario);
 
     List<MedicoResponseDTO> gestionarMedico(Integer idSede);
+
+    // NUEVO REQUISITO: Cambiar estado del médico
+    void cambiarEstadoMedico(Integer idMedico, String nuevoEstado);
 }
