@@ -130,6 +130,49 @@
         }
       ]
     },
+
+    {
+      "name": "PACIENTES (busqueda)",
+      "item": [
+        {
+          "name": "Buscar paciente por DNI (medico)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_medico}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/pacientes/00000004",
+              "host": ["{{base_url}}"],
+              "path": ["api", "pacientes", "00000004"]
+            }
+          }
+        },
+        {
+          "name": "Buscar paciente por DNI (admin local)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_admin_local}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/pacientes/00000004",
+              "host": ["{{base_url}}"],
+              "path": ["api", "pacientes", "00000004"]
+            }
+          }
+        },
+        {
+          "name": "Buscar paciente por DNI inexistente",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_medico}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/pacientes/99999999",
+              "host": ["{{base_url}}"],
+              "path": ["api", "pacientes", "99999999"]
+            }
+          }
+        }
+      ]
+    },
+
     {
       "name": "SEDES",
       "item": [
