@@ -40,7 +40,13 @@ public class SecurityConfig {
                         .requestMatchers("/api/reniec/**").hasAnyRole("ADMIN_LOCAL", "ADMIN_TOTAL")
                         .requestMatchers("/api/pacientes/**")
                         .hasAnyRole("MEDICO", "ADMIN_LOCAL", "ADMIN_TOTAL")
-                        .anyRequest().authenticated())
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**"
+                        ).permitAll()
+                        .anyRequest().authenticated()
+                )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

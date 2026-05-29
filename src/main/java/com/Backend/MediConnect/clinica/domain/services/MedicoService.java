@@ -4,13 +4,10 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.Backend.MediConnect.clinica.domain.dto.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.Backend.MediConnect.clinica.domain.dto.CitaResponseDTO;
-import com.Backend.MediConnect.clinica.domain.dto.RecetaDTO;
-import com.Backend.MediConnect.clinica.domain.dto.RecetaResponseDTO;
-import com.Backend.MediConnect.clinica.domain.dto.ReporteResponseDTO;
 import com.Backend.MediConnect.clinica.domain.interfaces.IMedicoService;
 import com.Backend.MediConnect.clinica.domain.repository.CitaRepository;
 import com.Backend.MediConnect.clinica.domain.repository.ConsultaRepository;
@@ -115,4 +112,9 @@ public List<CitaResponseDTO> consultarReservas(String dniMedico) {
                         .map(CitaMapper::toResponse) // 👈 ¡Cambiado aquí!
                         .collect(Collectors.toList());
 }
+
+    @Override
+    public List<PacienteBusquedaDTO> buscarPacientes(String termino) {
+        return List.of();
+    }
 }
