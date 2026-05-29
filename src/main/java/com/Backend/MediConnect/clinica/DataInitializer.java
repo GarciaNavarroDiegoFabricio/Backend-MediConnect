@@ -1,14 +1,26 @@
 package com.Backend.MediConnect.clinica;
 
+import java.time.LocalDate;
+import java.util.List;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import com.Backend.MediConnect.clinica.domain.repository.*;
-import com.Backend.MediConnect.clinica.persistance.entity.*;
-
-import java.time.LocalDate;
-import java.util.List;
+import com.Backend.MediConnect.clinica.domain.repository.AdminLocalRepository;
+import com.Backend.MediConnect.clinica.domain.repository.AdminTotalRepository;
+import com.Backend.MediConnect.clinica.domain.repository.EspecialidadRepository;
+import com.Backend.MediConnect.clinica.domain.repository.MedicoRepository;
+import com.Backend.MediConnect.clinica.domain.repository.PacienteRepository;
+import com.Backend.MediConnect.clinica.domain.repository.SedeRepository;
+import com.Backend.MediConnect.clinica.domain.repository.UsuarioRepository;
+import com.Backend.MediConnect.clinica.persistance.entity.AdministadorLocal;
+import com.Backend.MediConnect.clinica.persistance.entity.AdministradorTotal;
+import com.Backend.MediConnect.clinica.persistance.entity.Especialidad;
+import com.Backend.MediConnect.clinica.persistance.entity.Medico;
+import com.Backend.MediConnect.clinica.persistance.entity.Paciente;
+import com.Backend.MediConnect.clinica.persistance.entity.Sede;
+import com.Backend.MediConnect.clinica.persistance.entity.Usuario;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -88,7 +100,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void cargarAdminTotal() {
-        if (usuarioRepo.existsByDni("00000001"))
+        if (usuarioRepo.existsByDni("00000001") || adminTotalRepo.existsByDni("00000001"))
             return;
 
         AdministradorTotal admin = new AdministradorTotal();
@@ -107,7 +119,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void cargarAdminLocal() {
-        if (usuarioRepo.existsByDni("00000002"))
+        if (usuarioRepo.existsByDni("00000002") || adminLocalRepo.existsByDni("00000002"))
             return;
 
         Sede sede = sedeRepo.findAll().get(0);
@@ -129,7 +141,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void cargarMedicos() {
-        if (usuarioRepo.existsByDni("00000003"))
+        if (usuarioRepo.existsByDni("00000003") || medicoRepo.existsByDni("00000003"))
             return;
 
         Sede sede = sedeRepo.findAll().get(0);
@@ -155,7 +167,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void cargarPacientes() {
-        if (usuarioRepo.existsByDni("00000004"))
+        if (usuarioRepo.existsByDni("00000004") || pacienteRepo.existsByDni("00000004"))
             return;
 
         Paciente paciente = new Paciente();

@@ -1,17 +1,23 @@
 package com.Backend.MediConnect.clinica.domain.services;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.Backend.MediConnect.clinica.domain.dto.CitaDTO;
 import com.Backend.MediConnect.clinica.domain.dto.CitaResponseDTO;
 import com.Backend.MediConnect.clinica.domain.interfaces.IPacienteService;
-import com.Backend.MediConnect.clinica.domain.repository.*;
-import com.Backend.MediConnect.clinica.persistance.entity.*;
-import com.Backend.MediConnect.clinica.web.mapper.EntityMapper;
-
-import java.util.List;
-import java.util.stream.Collectors;
+import com.Backend.MediConnect.clinica.domain.repository.CitaRepository;
+import com.Backend.MediConnect.clinica.domain.repository.MedicoRepository;
+import com.Backend.MediConnect.clinica.domain.repository.PacienteRepository;
+import com.Backend.MediConnect.clinica.domain.repository.SedeRepository;
+import com.Backend.MediConnect.clinica.persistance.entity.Cita;
+import com.Backend.MediConnect.clinica.persistance.entity.Medico;
+import com.Backend.MediConnect.clinica.persistance.entity.Paciente;
+import com.Backend.MediConnect.clinica.persistance.entity.Sede;
+import com.Backend.MediConnect.clinica.web.mapper.CitaMapper;
 
 @Service
 public class PacienteService implements IPacienteService {
@@ -58,18 +64,17 @@ public class PacienteService implements IPacienteService {
         cita.setDuracionEstimada(dto.getDuracionEstimada());
         cita.setEstado("PENDIENTE");
 
-        return EntityMapper.toCitaResponse(citaRepo.save(cita));
+       return CitaMapper.toResponse(citaRepo.save(cita));
     }
 
-    @Override
     public List<CitaResponseDTO> consultarCitas(String dniPaciente) {
-        Paciente paciente = pacienteRepo.findByDni(dniPaciente)
-                .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
-        return citaRepo.findByPaciente(paciente)
-                .stream()
-                .map(EntityMapper::toCitaResponse)
-                .collect(Collectors.toList());
-    }
+    Paciente paciente = pacienteRepo.findByDni(dniPaciente)
+            .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
+    return citaRepo.findByPaciente(paciente)
+            .stream()
+            .map(CitaMapper::toResponse) 
+            .collect(Collectors.toList());
+}
 
     @Override
     @Transactional

@@ -1,9 +1,19 @@
 package com.Backend.MediConnect.clinica.persistance.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
-
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "medico")
@@ -30,6 +40,11 @@ public class Medico {
     private Integer edad;
 
     private Boolean disponible;
+
+    // REQUISITO FUNCIONAL: Estado para Activar, Desactivar o Suspender
+    // Se fuerza el nombre 'status' en la BD para evitar bloqueos del hosting remoto
+    @Column(name = "status", length = 255, nullable = true)
+    private String estado;
 
     @OneToMany(mappedBy = "medico")
     @JsonIgnore
@@ -66,7 +81,7 @@ public class Medico {
     }
 
     public void setIdMedico(Integer idMedico) {
-        this.idMedico = idMedico;
+       this.idMedico = idMedico;
     }
 
     public String getPrimerNombre() {
@@ -123,6 +138,14 @@ public class Medico {
 
     public void setDisponible(Boolean disponible) {
         this.disponible = disponible;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
     }
 
     public List<Horario> getHorarios() {

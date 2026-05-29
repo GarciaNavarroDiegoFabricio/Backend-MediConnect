@@ -1,5 +1,9 @@
 package com.Backend.MediConnect.clinica.domain.services;
 
+import java.time.LocalTime;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -8,13 +12,21 @@ import com.Backend.MediConnect.clinica.domain.dto.RecetaDTO;
 import com.Backend.MediConnect.clinica.domain.dto.RecetaResponseDTO;
 import com.Backend.MediConnect.clinica.domain.dto.ReporteResponseDTO;
 import com.Backend.MediConnect.clinica.domain.interfaces.IMedicoService;
-import com.Backend.MediConnect.clinica.domain.repository.*;
-import com.Backend.MediConnect.clinica.persistance.entity.*;
-import com.Backend.MediConnect.clinica.web.mapper.EntityMapper;
-
-import java.time.LocalTime;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.Backend.MediConnect.clinica.domain.repository.CitaRepository;
+import com.Backend.MediConnect.clinica.domain.repository.ConsultaRepository;
+import com.Backend.MediConnect.clinica.domain.repository.MedicoRepository;
+import com.Backend.MediConnect.clinica.domain.repository.PacienteRepository;
+import com.Backend.MediConnect.clinica.domain.repository.RecetaRepository;
+import com.Backend.MediConnect.clinica.domain.repository.ReporteRepository;
+import com.Backend.MediConnect.clinica.persistance.entity.Cita;
+import com.Backend.MediConnect.clinica.persistance.entity.Consulta;
+import com.Backend.MediConnect.clinica.persistance.entity.Medico;
+import com.Backend.MediConnect.clinica.persistance.entity.Paciente;
+import com.Backend.MediConnect.clinica.persistance.entity.Receta;
+import com.Backend.MediConnect.clinica.persistance.entity.Reporte;
+import com.Backend.MediConnect.clinica.web.mapper.CitaMapper;
+import com.Backend.MediConnect.clinica.web.mapper.RecetaMapper;
+import com.Backend.MediConnect.clinica.web.mapper.ReporteMapper;
 
 @Service
 public class MedicoService implements IMedicoService {
@@ -69,7 +81,7 @@ public class MedicoService implements IMedicoService {
                 reporte.setCitasReprogramadas((int) reprogramadas);
                 reporte.setCitasPendientes((int) pendientes);
 
-                return EntityMapper.toReporteResponse(reporteRepo.save(reporte));
+                return ReporteMapper.toResponse(reporteRepo.save(reporte));
         }
 
         @Override
@@ -91,16 +103,16 @@ public class MedicoService implements IMedicoService {
                 receta.setPrescripcion(dto.getPrescripcion());
                 receta.setFecha(dto.getFecha());
 
-                return EntityMapper.toRecetaResponse(recetaRepo.save(receta));
+                return RecetaMapper.toResponse(recetaRepo.save(receta));
         }
 
-        @Override
-        public List<CitaResponseDTO> consultarReservas(String dniMedico) {
-                Medico medico = medicoRepo.findByDni(dniMedico)
-                                .orElseThrow(() -> new RuntimeException("Médico no encontrado"));
-                return citaRepo.findByMedicoAndEstado(medico, "PENDIENTE")
-                                .stream()
-                                .map(EntityMapper::toCitaResponse)
-                                .collect(Collectors.toList());
-        }
+      @Override
+public List<CitaResponseDTO> consultarReservas(String dniMedico) {
+        Medico medico = medicoRepo.findByDni(dniMedico)
+                        .orElseThrow(() -> new RuntimeException("Médico no encontrado"));
+        return citaRepo.findByMedicoAndEstado(medico, "PENDIENTE")
+                        .stream()
+                        .map(CitaMapper::toResponse) // 👈 ¡Cambiado aquí!
+                        .collect(Collectors.toList());
+}
 }

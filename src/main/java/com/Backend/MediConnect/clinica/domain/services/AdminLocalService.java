@@ -1,5 +1,8 @@
 package com.Backend.MediConnect.clinica.domain.services;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -8,12 +11,13 @@ import com.Backend.MediConnect.clinica.domain.dto.HorarioResponseDTO;
 import com.Backend.MediConnect.clinica.domain.dto.MedicoResponseDTO;
 import com.Backend.MediConnect.clinica.domain.dto.ReprogramarHorarioDTO;
 import com.Backend.MediConnect.clinica.domain.interfaces.IAdminLocalService;
-import com.Backend.MediConnect.clinica.domain.repository.*;
-import com.Backend.MediConnect.clinica.persistance.entity.*;
-import com.Backend.MediConnect.clinica.web.mapper.EntityMapper;
-
-import java.util.List;
-import java.util.stream.Collectors;
+import com.Backend.MediConnect.clinica.domain.repository.HorarioRepository;
+import com.Backend.MediConnect.clinica.domain.repository.MedicoRepository;
+import com.Backend.MediConnect.clinica.domain.repository.SedeRepository;
+import com.Backend.MediConnect.clinica.persistance.entity.Horario;
+import com.Backend.MediConnect.clinica.persistance.entity.Medico;
+import com.Backend.MediConnect.clinica.web.mapper.HorarioMapper;
+import com.Backend.MediConnect.clinica.web.mapper.MedicoMapper;
 
 @Service
 public class AdminLocalService implements IAdminLocalService {
@@ -44,7 +48,7 @@ public class AdminLocalService implements IAdminLocalService {
         horario.setIntervaloMinutos(dto.getIntervaloMinutos());
         horario.setEstado("ACTIVO");
 
-        return EntityMapper.toHorarioResponse(horarioRepo.save(horario));
+       return HorarioMapper.toResponse(horarioRepo.save(horario));
     }
 
     @Override
@@ -59,7 +63,7 @@ public class AdminLocalService implements IAdminLocalService {
         horario.setIntervaloMinutos(dto.getIntervaloMinutos());
         horario.setEstado("REPROGRAMADO");
 
-        return EntityMapper.toHorarioResponse(horarioRepo.save(horario));
+        return HorarioMapper.toResponse(horarioRepo.save(horario));
     }
 
     @Override
@@ -86,7 +90,17 @@ public class AdminLocalService implements IAdminLocalService {
             throw new RuntimeException("Sede no encontrada");
         return medicoRepo.findBySedesIdSede(idSede)
                 .stream()
-                .map(EntityMapper::toMedicoResponse)
+                .map(MedicoMapper::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void cambiarEstadoMedico(Integer idMedico, String nuevoEstado) {
+        Medico medico = medicoRepo.findById(idMedico)
+                .orElseThrow(() -> new RuntimeException("Médico no encontrado"));
+        
+        medico.setEstado(nuevoEstado.toUpperCase());
+        medicoRepo.save(medico);
     }
 }

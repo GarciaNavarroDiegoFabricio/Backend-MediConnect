@@ -1,15 +1,22 @@
 package com.Backend.MediConnect.clinica.web.controller;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.Backend.MediConnect.clinica.domain.dto.HorarioDTO;
 import com.Backend.MediConnect.clinica.domain.dto.HorarioResponseDTO;
 import com.Backend.MediConnect.clinica.domain.dto.MedicoResponseDTO;
 import com.Backend.MediConnect.clinica.domain.dto.ReprogramarHorarioDTO;
 import com.Backend.MediConnect.clinica.domain.interfaces.IAdminLocalService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin-local")
@@ -47,5 +54,11 @@ public class AdminLocalController {
     @GetMapping("/medicos/{idSede}")
     public ResponseEntity<List<MedicoResponseDTO>> gestionarMedico(@PathVariable Integer idSede) {
         return ResponseEntity.ok(adminLocalService.gestionarMedico(idSede));
+    }
+
+    @PutMapping("/medicos/{idMedico}/estado")
+    public ResponseEntity<Void> cambiarEstadoMedico(@PathVariable Integer idMedico, @RequestParam String estado) {
+        adminLocalService.cambiarEstadoMedico(idMedico, estado);
+        return ResponseEntity.noContent().build();
     }
 }
