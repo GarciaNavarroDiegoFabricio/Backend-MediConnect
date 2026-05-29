@@ -15,9 +15,7 @@ public class AdminLocalMapper {
         dto.setPrimerApellido(admin.getPrimerApellido());
         dto.setSegundoApellido(admin.getSegundoApellido());
         dto.setDni(admin.getDni());
-        dto.setEstado(admin.getEstado()); // Para Activar/Desactivar/Suspender
-
-        // RF: Asociarles una sede y retornar el ID
+        dto.setEstado(admin.getEstado());
         if (admin.getSede() != null) {
             dto.setIdSede(admin.getSede().getIdSede());
             dto.setNombreSede(admin.getSede().getNombreSede());

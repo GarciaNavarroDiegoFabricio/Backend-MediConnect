@@ -18,4 +18,5 @@ public class PacienteResponseDTO {
     private String telefono;
     private LocalDate fechaNacimiento;
     private String ubigeo;
+    private String codigoHistoriaClinica;
 }

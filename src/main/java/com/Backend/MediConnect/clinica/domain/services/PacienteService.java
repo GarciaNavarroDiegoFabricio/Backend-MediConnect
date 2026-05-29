@@ -3,6 +3,9 @@ package com.Backend.MediConnect.clinica.domain.services;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.Backend.MediConnect.clinica.domain.dto.ActualizarContactoPacienteDTO;
+import com.Backend.MediConnect.clinica.domain.dto.PacienteResponseDTO;
+import com.Backend.MediConnect.clinica.web.mapper.PacienteMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,9 +31,9 @@ public class PacienteService implements IPacienteService {
     private final CitaRepository citaRepo;
 
     public PacienteService(PacienteRepository pacienteRepo,
-            MedicoRepository medicoRepo,
-            SedeRepository sedeRepo,
-            CitaRepository citaRepo) {
+                           MedicoRepository medicoRepo,
+                           SedeRepository sedeRepo,
+                           CitaRepository citaRepo) {
         this.pacienteRepo = pacienteRepo;
         this.medicoRepo = medicoRepo;
         this.sedeRepo = sedeRepo;
@@ -64,17 +67,18 @@ public class PacienteService implements IPacienteService {
         cita.setDuracionEstimada(dto.getDuracionEstimada());
         cita.setEstado("PENDIENTE");
 
-       return CitaMapper.toResponse(citaRepo.save(cita));
+        return CitaMapper.toResponse(citaRepo.save(cita));
     }
 
+    @Override
     public List<CitaResponseDTO> consultarCitas(String dniPaciente) {
-    Paciente paciente = pacienteRepo.findByDni(dniPaciente)
-            .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
-    return citaRepo.findByPaciente(paciente)
-            .stream()
-            .map(CitaMapper::toResponse) 
-            .collect(Collectors.toList());
-}
+        Paciente paciente = pacienteRepo.findByDni(dniPaciente)
+                .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
+        return citaRepo.findByPaciente(paciente)
+                .stream()
+                .map(CitaMapper::toResponse)
+                .collect(Collectors.toList());
+    }
 
     @Override
     @Transactional
@@ -90,5 +94,31 @@ public class PacienteService implements IPacienteService {
 
         cita.setEstado("CANCELADA");
         citaRepo.save(cita);
+    }
+
+    @Override
+    public PacienteResponseDTO obtenerPerfil(String dniPaciente) {
+        Paciente paciente = pacienteRepo.findByDni(dniPaciente)
+                .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
+        return PacienteMapper.toResponse(paciente);
+    }
+
+    @Override
+    @Transactional
+    public void actualizarContacto(String dniPaciente, ActualizarContactoPacienteDTO dto) {
+        Paciente paciente = pacienteRepo.findByDni(dniPaciente)
+                .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
+
+        if (dto.getCorreo() != null && !dto.getCorreo().isBlank()) {
+            paciente.setCorreo(dto.getCorreo());
+        }
+        if (dto.getTelefono() != null && !dto.getTelefono().isBlank()) {
+            paciente.setTelefono(dto.getTelefono());
+        }
+        if (dto.getUbigeo() != null && !dto.getUbigeo().isBlank()) {
+            paciente.setUbigeo(dto.getUbigeo());
+        }
+
+        pacienteRepo.save(paciente);
     }
 }

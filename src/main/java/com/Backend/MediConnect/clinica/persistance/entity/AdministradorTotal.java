@@ -25,8 +25,11 @@ public class AdministradorTotal {
     @Column(name = "dni", length = 8, nullable = false, unique = true)
     private String dni;
 
+    @Column(name = "status", length = 255, nullable = true)
+    private String estado;
+
     public AdministradorTotal() {
-    };
+    }
 
     public Integer getIdAdminTotal() {
         return idAdminTotal;
@@ -74,5 +77,13 @@ public class AdministradorTotal {
 
     public void setDni(String dni) {
         this.dni = dni;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
     }
 }

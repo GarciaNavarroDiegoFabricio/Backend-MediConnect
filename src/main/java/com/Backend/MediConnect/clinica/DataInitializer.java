@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import com.Backend.MediConnect.clinica.domain.repository.AdminLocalRepository;
 import com.Backend.MediConnect.clinica.domain.repository.AdminTotalRepository;
 import com.Backend.MediConnect.clinica.domain.repository.EspecialidadRepository;
+import com.Backend.MediConnect.clinica.domain.repository.HistoriaClinicaRepository;
 import com.Backend.MediConnect.clinica.domain.repository.MedicoRepository;
 import com.Backend.MediConnect.clinica.domain.repository.PacienteRepository;
 import com.Backend.MediConnect.clinica.domain.repository.SedeRepository;
@@ -17,6 +18,7 @@ import com.Backend.MediConnect.clinica.domain.repository.UsuarioRepository;
 import com.Backend.MediConnect.clinica.persistance.entity.AdministadorLocal;
 import com.Backend.MediConnect.clinica.persistance.entity.AdministradorTotal;
 import com.Backend.MediConnect.clinica.persistance.entity.Especialidad;
+import com.Backend.MediConnect.clinica.persistance.entity.HistoriaClinica;
 import com.Backend.MediConnect.clinica.persistance.entity.Medico;
 import com.Backend.MediConnect.clinica.persistance.entity.Paciente;
 import com.Backend.MediConnect.clinica.persistance.entity.Sede;
@@ -32,16 +34,18 @@ public class DataInitializer implements CommandLineRunner {
     private final AdminTotalRepository adminTotalRepo;
     private final SedeRepository sedeRepo;
     private final EspecialidadRepository especialidadRepo;
+    private final HistoriaClinicaRepository historiaClinicaRepo;
     private final PasswordEncoder passwordEncoder;
 
     public DataInitializer(UsuarioRepository usuarioRepo,
-            PacienteRepository pacienteRepo,
-            MedicoRepository medicoRepo,
-            AdminLocalRepository adminLocalRepo,
-            AdminTotalRepository adminTotalRepo,
-            SedeRepository sedeRepo,
-            EspecialidadRepository especialidadRepo,
-            PasswordEncoder passwordEncoder) {
+                           PacienteRepository pacienteRepo,
+                           MedicoRepository medicoRepo,
+                           AdminLocalRepository adminLocalRepo,
+                           AdminTotalRepository adminTotalRepo,
+                           SedeRepository sedeRepo,
+                           EspecialidadRepository especialidadRepo,
+                           HistoriaClinicaRepository historiaClinicaRepo,
+                           PasswordEncoder passwordEncoder) {
         this.usuarioRepo = usuarioRepo;
         this.pacienteRepo = pacienteRepo;
         this.medicoRepo = medicoRepo;
@@ -49,6 +53,7 @@ public class DataInitializer implements CommandLineRunner {
         this.adminTotalRepo = adminTotalRepo;
         this.sedeRepo = sedeRepo;
         this.especialidadRepo = especialidadRepo;
+        this.historiaClinicaRepo = historiaClinicaRepo;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -67,18 +72,18 @@ public class DataInitializer implements CommandLineRunner {
             return;
 
         Sede sede1 = new Sede();
-        sede1.setNombreSede("Sede Central");
-        sede1.setUbicacion("Av. Javier Prado 123, Lima");
+        sede1.setNombreSede("Sede Comas");
+        sede1.setUbicacion("Av. Túpac Amaru 5421, Comas, Lima");
         sedeRepo.save(sede1);
 
         Sede sede2 = new Sede();
-        sede2.setNombreSede("Sede San Isidro");
-        sede2.setUbicacion("Calle Los Pinos 456, San Isidro");
+        sede2.setNombreSede("Sede Independencia");
+        sede2.setUbicacion("Av. Carlos Izaguirre 125, Independencia, Lima");
         sedeRepo.save(sede2);
 
         Sede sede3 = new Sede();
-        sede3.setNombreSede("Sede Miraflores");
-        sede3.setUbicacion("Av. Larco 789, Miraflores");
+        sede3.setNombreSede("Sede Puente Piedra");
+        sede3.setUbicacion("Av. Sáenz Peña 310, Puente Piedra, Lima");
         sedeRepo.save(sede3);
     }
 
@@ -109,12 +114,14 @@ public class DataInitializer implements CommandLineRunner {
         admin.setPrimerApellido("Ramirez");
         admin.setSegundoApellido("Torres");
         admin.setDni("00000001");
+        admin.setEstado("ACTIVO");
         adminTotalRepo.save(admin);
 
         Usuario usuario = new Usuario();
         usuario.setDni("00000001");
         usuario.setPassword(passwordEncoder.encode("admin123"));
         usuario.setRol("ADMIN_TOTAL");
+        usuario.setActivo(true);
         usuarioRepo.save(usuario);
     }
 
@@ -130,6 +137,7 @@ public class DataInitializer implements CommandLineRunner {
         admin.setPrimerApellido("Lopez");
         admin.setSegundoApellido("Garcia");
         admin.setDni("00000002");
+        admin.setEstado("ACTIVO");
         admin.setSede(sede);
         adminLocalRepo.save(admin);
 
@@ -137,6 +145,7 @@ public class DataInitializer implements CommandLineRunner {
         usuario.setDni("00000002");
         usuario.setPassword(passwordEncoder.encode("local123"));
         usuario.setRol("ADMIN_LOCAL");
+        usuario.setActivo(true);
         usuarioRepo.save(usuario);
     }
 
@@ -163,6 +172,7 @@ public class DataInitializer implements CommandLineRunner {
         usuario.setDni("00000003");
         usuario.setPassword(passwordEncoder.encode("medico123"));
         usuario.setRol("MEDICO");
+        usuario.setActivo(true);
         usuarioRepo.save(usuario);
     }
 
@@ -180,12 +190,22 @@ public class DataInitializer implements CommandLineRunner {
         paciente.setTelefono("987654321");
         paciente.setFechaNacimiento(LocalDate.of(1995, 3, 15));
         paciente.setUbigeo("150101");
-        pacienteRepo.save(paciente);
+        paciente = pacienteRepo.save(paciente);
+
+        HistoriaClinica historia = new HistoriaClinica();
+        historia.setPaciente(paciente);
+        historia.setFecha(LocalDate.now());
+        historia.setMotivoIngreso("Registro inicial de paciente");
+        historia.setHistoriaEnfermedadActual("");
+        historia.setEnfermedadesPasadas("");
+        historia.setCodigoUnico("HCL-00000004-TEST");
+        historiaClinicaRepo.save(historia);
 
         Usuario usuario = new Usuario();
         usuario.setDni("00000004");
         usuario.setPassword(passwordEncoder.encode("paciente123"));
         usuario.setRol("PACIENTE");
+        usuario.setActivo(true);
         usuarioRepo.save(usuario);
     }
 }

@@ -12,6 +12,7 @@ import com.Backend.MediConnect.clinica.web.security.JwtUtil;
 import com.Backend.MediConnect.clinica.web.security.LoginAttemptService;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -24,22 +25,24 @@ public class UsuarioService implements IUsuarioService {
     private final AdminTotalRepository adminTotalRepo;
     private final SedeRepository sedeRepo;
     private final EspecialidadRepository especialidadRepo;
+    private final HistoriaClinicaRepository historiaClinicaRepo;
     private final ReniecService reniecService;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
     private final LoginAttemptService loginAttemptService;
 
     public UsuarioService(UsuarioRepository usuarioRepo,
-            PacienteRepository pacienteRepo,
-            MedicoRepository medicoRepo,
-            AdminLocalRepository adminLocalRepo,
-            AdminTotalRepository adminTotalRepo,
-            SedeRepository sedeRepo,
-            EspecialidadRepository especialidadRepo,
-            ReniecService reniecService,
-            JwtUtil jwtUtil,
-            PasswordEncoder passwordEncoder,
-            LoginAttemptService loginAttemptService) {
+                          PacienteRepository pacienteRepo,
+                          MedicoRepository medicoRepo,
+                          AdminLocalRepository adminLocalRepo,
+                          AdminTotalRepository adminTotalRepo,
+                          SedeRepository sedeRepo,
+                          EspecialidadRepository especialidadRepo,
+                          HistoriaClinicaRepository historiaClinicaRepo,
+                          ReniecService reniecService,
+                          JwtUtil jwtUtil,
+                          PasswordEncoder passwordEncoder,
+                          LoginAttemptService loginAttemptService) {
         this.usuarioRepo = usuarioRepo;
         this.pacienteRepo = pacienteRepo;
         this.medicoRepo = medicoRepo;
@@ -47,59 +50,38 @@ public class UsuarioService implements IUsuarioService {
         this.adminTotalRepo = adminTotalRepo;
         this.sedeRepo = sedeRepo;
         this.especialidadRepo = especialidadRepo;
+        this.historiaClinicaRepo = historiaClinicaRepo;
         this.reniecService = reniecService;
         this.jwtUtil = jwtUtil;
         this.passwordEncoder = passwordEncoder;
         this.loginAttemptService = loginAttemptService;
     }
 
-    // Loguea al usuario y devuelve al frontend el token(con el dni y el rol), el
-    // nombre completo del usuario
-    // y su rol.
     @Override
     public AuthResponse login(AuthRequest request) {
-
         String dni = request.getDni();
 
-        // verificar bloqueo
         if (loginAttemptService.estaBloqueado(dni)) {
-            throw new RuntimeException(
-                    "Cuenta bloqueada temporalmente por múltiples intentos fallidos");
+            throw new RuntimeException("Cuenta bloqueada temporalmente por múltiples intentos fallidos");
         }
 
         Usuario usuario = usuarioRepo.findByDni(dni)
                 .orElseThrow(() -> {
-
                     loginAttemptService.registrarIntentoFallido(dni);
-
                     return new RuntimeException("Credenciales inválidas");
                 });
 
-        // contraseña incorrecta
-        if (!passwordEncoder.matches(
-                request.getPassword(),
-                usuario.getPassword())) {
-
+        if (!passwordEncoder.matches(request.getPassword(), usuario.getPassword())) {
             loginAttemptService.registrarIntentoFallido(dni);
-
             throw new RuntimeException("Credenciales inválidas");
         }
 
-        // login correcto
         loginAttemptService.loginExitoso(dni);
 
-        String nombre = resolverNombre(
-                usuario.getDni(),
-                usuario.getRol());
+        String nombre = resolverNombre(usuario.getDni(), usuario.getRol());
+        String token = jwtUtil.generarToken(usuario.getDni(), usuario.getRol());
 
-        String token = jwtUtil.generarToken(
-                usuario.getDni(),
-                usuario.getRol());
-
-        return new AuthResponse(
-                token,
-                usuario.getRol(),
-                nombre);
+        return new AuthResponse(token, usuario.getRol(), nombre);
     }
 
     @Override
@@ -112,8 +94,7 @@ public class UsuarioService implements IUsuarioService {
 
         if (!reniec.isEncontrado())
             throw new RuntimeException(
-                    "No se encontraron datos en RENIEC para el DNI ingresado. " +
-                            "Por favor comuníquese con un administrador para registrar sus datos manualmente.");
+                    "No se encontraron datos en RENIEC para el DNI ingresado. Por favor comuníquese con un administrador para registrar sus datos manualmente.");
 
         Paciente paciente = new Paciente();
         paciente.setDni(dto.getDni());
@@ -128,7 +109,16 @@ public class UsuarioService implements IUsuarioService {
         if (reniec.getFechaNacimiento() != null && !reniec.getFechaNacimiento().isEmpty())
             paciente.setFechaNacimiento(LocalDate.parse(reniec.getFechaNacimiento()));
 
-        pacienteRepo.save(paciente);
+        paciente = pacienteRepo.save(paciente);
+
+        HistoriaClinica historia = new HistoriaClinica();
+        historia.setPaciente(paciente);
+        historia.setFecha(LocalDate.now());
+        historia.setMotivoIngreso("Registro inicial de paciente");
+        historia.setHistoriaEnfermedadActual("");
+        historia.setEnfermedadesPasadas("");
+        historia.setCodigoUnico(generarCodigoHistoriaClinica(paciente));
+        historiaClinicaRepo.save(historia);
 
         return crearUsuarioYToken(dto.getDni(), dto.getPassword(), "PACIENTE",
                 reniec.getNombres() + " " + reniec.getApellidoPaterno());
@@ -223,9 +213,6 @@ public class UsuarioService implements IUsuarioService {
         return new AuthResponse(token, rol, nombre);
     }
 
-    // Dependiendo del rol que se le otorgue a la funcion, busca en una tabla
-    // especifica el dni de un
-    // usuario y devuelve su nombre completo
     private String resolverNombre(String dni, String rol) {
         return switch (rol) {
             case "PACIENTE" -> pacienteRepo.findByDni(dni)
@@ -242,5 +229,16 @@ public class UsuarioService implements IUsuarioService {
                     .orElse("Admin Total");
             default -> "Usuario";
         };
+    }
+
+    private String generarCodigoHistoriaClinica(Paciente paciente) {
+        String base = "HCL-" + paciente.getDni() + "-" + LocalDateTime.now().getYear();
+        String codigo = base;
+        int sufijo = 1;
+        while (historiaClinicaRepo.existsByCodigoUnico(codigo)) {
+            codigo = base + "-" + sufijo;
+            sufijo++;
+        }
+        return codigo;
     }
 }

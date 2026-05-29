@@ -1,5 +1,7 @@
 package com.Backend.MediConnect.clinica.web.controller;
 
+import com.Backend.MediConnect.clinica.domain.dto.ActualizarContactoPacienteDTO;
+import com.Backend.MediConnect.clinica.domain.dto.PacienteResponseDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +35,18 @@ public class PacienteController {
     @PutMapping("/cita/{idCita}/cancelar")
     public ResponseEntity<Void> cancelarCita(@PathVariable Integer idCita, Authentication auth) {
         pacienteService.cancelarCita(auth.getName(), idCita);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/perfil")
+    public ResponseEntity<PacienteResponseDTO> obtenerPerfil(Authentication auth) {
+        return ResponseEntity.ok(pacienteService.obtenerPerfil(auth.getName()));
+    }
+
+    @PutMapping("/contacto")
+    public ResponseEntity<Void> actualizarContacto(@RequestBody ActualizarContactoPacienteDTO dto,
+                                                   Authentication auth) {
+        pacienteService.actualizarContacto(auth.getName(), dto);
         return ResponseEntity.noContent().build();
     }
 }

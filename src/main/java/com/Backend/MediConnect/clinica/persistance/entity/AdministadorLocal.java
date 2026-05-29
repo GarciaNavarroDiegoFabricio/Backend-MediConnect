@@ -35,8 +35,6 @@ public class AdministadorLocal {
     @Column(name = "dni", length = 8, nullable = false, unique = true)
     private String dni;
 
-    // REQUISITO FUNCIONAL: Estado para Activar, Desactivar o Suspender
-    // Se fuerza el nombre 'status' en la BD para evitar bloqueos del hosting remoto
     @Column(name = "status", length = 255, nullable = true)
     private String estado;
 
