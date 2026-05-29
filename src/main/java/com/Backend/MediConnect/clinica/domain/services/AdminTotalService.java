@@ -37,7 +37,8 @@ public class AdminTotalService implements IAdminTotalService {
 
     @Override
     @Transactional
-    public AuthResponse crearAdminLocal(RegistroAdminLocalDTO dto) {
+    public AdminLocalResponseDTO crearAdminLocal(RegistroAdminLocalDTO dto) {
+
         if (usuarioRepo.existsByDni(dto.getDni()))
             throw new RuntimeException("DNI ya registrado");
 
@@ -45,23 +46,36 @@ public class AdminTotalService implements IAdminTotalService {
                 .orElseThrow(() -> new RuntimeException("Sede no encontrada"));
 
         AdministadorLocal admin = new AdministadorLocal();
+
         admin.setPrimerNombre(dto.getPrimerNombre());
         admin.setSegundoNombre(dto.getSegundoNombre());
+
         admin.setPrimerApellido(dto.getPrimerApellido());
         admin.setSegundoApellido(dto.getSegundoApellido());
+
         admin.setDni(dto.getDni());
         admin.setSede(sede);
-        adminLocalRepo.save(admin);
+
+        AdministadorLocal adminGuardado = adminLocalRepo.save(admin);
 
         Usuario usuario = new Usuario();
         usuario.setDni(dto.getDni());
         usuario.setPassword(passwordEncoder.encode(dto.getPassword()));
         usuario.setRol("ADMIN_LOCAL");
+
         usuarioRepo.save(usuario);
 
-        String token = jwtUtil.generarToken(dto.getDni(), "ADMIN_LOCAL");
-        return new AuthResponse(token, "ADMIN_LOCAL",
-                dto.getPrimerNombre() + " " + dto.getPrimerApellido());
+        AdminLocalResponseDTO response = new AdminLocalResponseDTO();
+
+        response.setIdAdminLocal(adminGuardado.getIdAdminLocal());
+        response.setPrimerNombre(adminGuardado.getPrimerNombre());
+        response.setSegundoNombre(adminGuardado.getSegundoNombre());
+        response.setPrimerApellido(adminGuardado.getPrimerApellido());
+        response.setSegundoApellido(adminGuardado.getSegundoApellido());
+        response.setDni(adminGuardado.getDni());
+        response.setNombreSede(sede.getNombreSede());
+
+        return response;
     }
 
     @Override

@@ -3,7 +3,7 @@ package com.Backend.MediConnect.clinica.persistance.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "ADMINISTRADOR_TOTAL")
+@Table(name = "administrador_total")
 public class AdministradorTotal {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

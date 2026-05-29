@@ -19,7 +19,7 @@ public class AdminTotalController {
     }
 
     @PostMapping("/admin-local")
-    public ResponseEntity<AuthResponse> crearAdminLocal(@RequestBody RegistroAdminLocalDTO dto) {
+    public ResponseEntity<AdminLocalResponseDTO> crearAdminLocal(@RequestBody RegistroAdminLocalDTO dto) {
         return ResponseEntity.ok(adminTotalService.crearAdminLocal(dto));
     }
 

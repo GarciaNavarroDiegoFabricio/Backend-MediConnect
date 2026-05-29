@@ -9,6 +9,7 @@ import com.Backend.MediConnect.clinica.domain.interfaces.IUsuarioService;
 import com.Backend.MediConnect.clinica.domain.repository.*;
 import com.Backend.MediConnect.clinica.persistance.entity.*;
 import com.Backend.MediConnect.clinica.web.security.JwtUtil;
+import com.Backend.MediConnect.clinica.web.security.LoginAttemptService;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -26,6 +27,7 @@ public class UsuarioService implements IUsuarioService {
     private final ReniecService reniecService;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
+    private final LoginAttemptService loginAttemptService;
 
     public UsuarioService(UsuarioRepository usuarioRepo,
             PacienteRepository pacienteRepo,
@@ -36,7 +38,8 @@ public class UsuarioService implements IUsuarioService {
             EspecialidadRepository especialidadRepo,
             ReniecService reniecService,
             JwtUtil jwtUtil,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            LoginAttemptService loginAttemptService) {
         this.usuarioRepo = usuarioRepo;
         this.pacienteRepo = pacienteRepo;
         this.medicoRepo = medicoRepo;
@@ -47,6 +50,7 @@ public class UsuarioService implements IUsuarioService {
         this.reniecService = reniecService;
         this.jwtUtil = jwtUtil;
         this.passwordEncoder = passwordEncoder;
+        this.loginAttemptService = loginAttemptService;
     }
 
     // Loguea al usuario y devuelve al frontend el token(con el dni y el rol), el
@@ -54,18 +58,48 @@ public class UsuarioService implements IUsuarioService {
     // y su rol.
     @Override
     public AuthResponse login(AuthRequest request) {
-        // Se busca si el usuario existe en la tabla usuarios por su dni
-        Usuario usuario = usuarioRepo.findByDni(request.getDni())
-                .orElseThrow(() -> new RuntimeException("Credenciales inválidas"));
 
-        // Se compara la contraseña de la bd con la ingresada por el usuario
-        if (!passwordEncoder.matches(request.getPassword(), usuario.getPassword()))
+        String dni = request.getDni();
+
+        // verificar bloqueo
+        if (loginAttemptService.estaBloqueado(dni)) {
+            throw new RuntimeException(
+                    "Cuenta bloqueada temporalmente por múltiples intentos fallidos");
+        }
+
+        Usuario usuario = usuarioRepo.findByDni(dni)
+                .orElseThrow(() -> {
+
+                    loginAttemptService.registrarIntentoFallido(dni);
+
+                    return new RuntimeException("Credenciales inválidas");
+                });
+
+        // contraseña incorrecta
+        if (!passwordEncoder.matches(
+                request.getPassword(),
+                usuario.getPassword())) {
+
+            loginAttemptService.registrarIntentoFallido(dni);
+
             throw new RuntimeException("Credenciales inválidas");
+        }
 
-        //
-        String nombre = resolverNombre(usuario.getDni(), usuario.getRol());
-        String token = jwtUtil.generarToken(usuario.getDni(), usuario.getRol());
-        return new AuthResponse(token, usuario.getRol(), nombre);
+        // login correcto
+        loginAttemptService.loginExitoso(dni);
+
+        String nombre = resolverNombre(
+                usuario.getDni(),
+                usuario.getRol());
+
+        String token = jwtUtil.generarToken(
+                usuario.getDni(),
+                usuario.getRol());
+
+        return new AuthResponse(
+                token,
+                usuario.getRol(),
+                nombre);
     }
 
     @Override
