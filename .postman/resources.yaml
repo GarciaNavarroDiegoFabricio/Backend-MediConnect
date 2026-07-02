@@ -1,0 +1,7 @@
+# Use this workspace to collaborate
+workspace:
+  id: b65c5ec7-5268-40e9-890c-c0e0bbd1c7fd
+
+localResources:
+  collections:
+    - ..\ApiMediConnect.json

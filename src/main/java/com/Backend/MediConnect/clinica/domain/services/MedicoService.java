@@ -1,0 +1,120 @@
+package com.Backend.MediConnect.clinica.domain.services;
+
+import java.time.LocalTime;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.Backend.MediConnect.clinica.domain.dto.*;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.Backend.MediConnect.clinica.domain.interfaces.IMedicoService;
+import com.Backend.MediConnect.clinica.domain.repository.CitaRepository;
+import com.Backend.MediConnect.clinica.domain.repository.ConsultaRepository;
+import com.Backend.MediConnect.clinica.domain.repository.MedicoRepository;
+import com.Backend.MediConnect.clinica.domain.repository.PacienteRepository;
+import com.Backend.MediConnect.clinica.domain.repository.RecetaRepository;
+import com.Backend.MediConnect.clinica.domain.repository.ReporteRepository;
+import com.Backend.MediConnect.clinica.persistance.entity.Cita;
+import com.Backend.MediConnect.clinica.persistance.entity.Consulta;
+import com.Backend.MediConnect.clinica.persistance.entity.Medico;
+import com.Backend.MediConnect.clinica.persistance.entity.Paciente;
+import com.Backend.MediConnect.clinica.persistance.entity.Receta;
+import com.Backend.MediConnect.clinica.persistance.entity.Reporte;
+import com.Backend.MediConnect.clinica.web.mapper.CitaMapper;
+import com.Backend.MediConnect.clinica.web.mapper.RecetaMapper;
+import com.Backend.MediConnect.clinica.web.mapper.ReporteMapper;
+
+@Service
+public class MedicoService implements IMedicoService {
+
+        private final MedicoRepository medicoRepo;
+        private final PacienteRepository pacienteRepo;
+        private final ConsultaRepository consultaRepo;
+        private final RecetaRepository recetaRepo;
+        private final CitaRepository citaRepo;
+        private final ReporteRepository reporteRepo;
+
+        public MedicoService(MedicoRepository medicoRepo,
+                        PacienteRepository pacienteRepo,
+                        ConsultaRepository consultaRepo,
+                        RecetaRepository recetaRepo,
+                        CitaRepository citaRepo,
+                        ReporteRepository reporteRepo) {
+                this.medicoRepo = medicoRepo;
+                this.pacienteRepo = pacienteRepo;
+                this.consultaRepo = consultaRepo;
+                this.recetaRepo = recetaRepo;
+                this.citaRepo = citaRepo;
+                this.reporteRepo = reporteRepo;
+        }
+
+        @Override
+        @Transactional
+        public void cambiarDisponibilidad(String dniMedico, Boolean disponible) {
+                Medico medico = medicoRepo.findByDni(dniMedico)
+                                .orElseThrow(() -> new RuntimeException("Médico no encontrado"));
+                medico.setDisponible(disponible);
+                medicoRepo.save(medico);
+        }
+
+        @Override
+        @Transactional
+        public ReporteResponseDTO generarReporteConsulta(String dniMedico) {
+                Medico medico = medicoRepo.findByDni(dniMedico)
+                                .orElseThrow(() -> new RuntimeException("Médico no encontrado"));
+
+                List<Cita> citas = citaRepo.findByMedico(medico);
+
+                long atendidas = citas.stream().filter(c -> c.getEstado().equals("ATENDIDA")).count();
+                long canceladas = citas.stream().filter(c -> c.getEstado().equals("CANCELADA")).count();
+                long reprogramadas = citas.stream().filter(c -> c.getEstado().equals("REPROGRAMADA")).count();
+                long pendientes = citas.stream().filter(c -> c.getEstado().equals("PENDIENTE")).count();
+
+                Reporte reporte = new Reporte();
+                reporte.setFechaReporte(LocalTime.now());
+                reporte.setCitasAtendidas((int) atendidas);
+                reporte.setCitasCanceladas((int) canceladas);
+                reporte.setCitasReprogramadas((int) reprogramadas);
+                reporte.setCitasPendientes((int) pendientes);
+
+                return ReporteMapper.toResponse(reporteRepo.save(reporte));
+        }
+
+        @Override
+        @Transactional
+        public RecetaResponseDTO crearReceta(String dniMedico, RecetaDTO dto) {
+                Medico medico = medicoRepo.findByDni(dniMedico)
+                                .orElseThrow(() -> new RuntimeException("Médico no encontrado"));
+
+                Paciente paciente = pacienteRepo.findById(dto.getIdPaciente())
+                                .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
+
+                Consulta consulta = consultaRepo.findById(dto.getIdConsulta())
+                                .orElseThrow(() -> new RuntimeException("Consulta no encontrada"));
+
+                Receta receta = new Receta();
+                receta.setMedico(medico);
+                receta.setPaciente(paciente);
+                receta.setConsulta(consulta);
+                receta.setPrescripcion(dto.getPrescripcion());
+                receta.setFecha(dto.getFecha());
+
+                return RecetaMapper.toResponse(recetaRepo.save(receta));
+        }
+
+      @Override
+public List<CitaResponseDTO> consultarReservas(String dniMedico) {
+        Medico medico = medicoRepo.findByDni(dniMedico)
+                        .orElseThrow(() -> new RuntimeException("Médico no encontrado"));
+        return citaRepo.findByMedicoAndEstado(medico, "PENDIENTE")
+                        .stream()
+                        .map(CitaMapper::toResponse) // 👈 ¡Cambiado aquí!
+                        .collect(Collectors.toList());
+}
+
+    @Override
+    public List<PacienteBusquedaDTO> buscarPacientes(String termino) {
+        return List.of();
+    }
+}
