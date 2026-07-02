@@ -1,12 +1,12 @@
 package com.Backend.MediConnect.clinica.domain.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.Backend.MediConnect.clinica.persistance.entity.Cita;
 import com.Backend.MediConnect.clinica.persistance.entity.Medico;
 import com.Backend.MediConnect.clinica.persistance.entity.Paciente;
-
-import java.util.List;
 
 public interface CitaRepository extends JpaRepository<Cita, Integer> {
     List<Cita> findByPaciente(Paciente paciente);
@@ -14,4 +14,7 @@ public interface CitaRepository extends JpaRepository<Cita, Integer> {
     List<Cita> findByMedico(Medico medico);
 
     List<Cita> findByMedicoAndEstado(Medico medico, String estado);
+
+    //  AGREGADO PARA EL RF2: Buscar citas activas de hoy
+    List<Cita> findByMedicoAndFechaAndEstadoNot(Medico medico, java.time.LocalDate fecha, String estado);
 }

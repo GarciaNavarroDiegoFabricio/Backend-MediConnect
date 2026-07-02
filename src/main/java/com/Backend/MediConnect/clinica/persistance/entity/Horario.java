@@ -1,8 +1,14 @@
 package com.Backend.MediConnect.clinica.persistance.entity;
 
-import jakarta.persistence.*;
-
 import java.time.LocalTime;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "horario")
@@ -16,14 +22,13 @@ public class Horario {
     private Medico medico;
 
     private String diaSemana;
-
     private LocalTime horaInicio;
-
     private LocalTime horaFin;
-
     private Integer intervaloMinutos;
-
     private String estado;
+
+    // 🔥 AGREGADO PARA EL RF4: Guardar la justificación del bloqueo
+    private String motivo;
 
     public Horario() {
     }
@@ -82,5 +87,13 @@ public class Horario {
 
     public void setEstado(String estado) {
         this.estado = estado;
+    }
+
+    public String getMotivo() {
+        return motivo;
+    }
+
+    public void setMotivo(String motivo) {
+        this.motivo = motivo;
     }
 }
