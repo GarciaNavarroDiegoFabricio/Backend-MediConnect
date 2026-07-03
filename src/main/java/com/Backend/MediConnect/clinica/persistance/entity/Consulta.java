@@ -3,6 +3,8 @@ package com.Backend.MediConnect.clinica.persistance.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -23,7 +25,22 @@ public class Consulta {
     @JoinColumn(name = "id_paciente")
     private Paciente paciente;
 
-    @OneToMany(mappedBy = "consulta")
-    private List<Receta> recetas;
+    @ManyToOne
+    @JoinColumn(name = "id_cita")
+    private Cita cita;
+
+    @Column(name = "hora_inicio")
+    private LocalDateTime horaInicio;
+
+    @Column(name = "hora_fin")
+    private LocalDateTime horaFin;
+
+    @OneToOne(mappedBy = "consulta")
+    private Diagnostico diagnostico;
+
+    private String estado;
+
+    public Consulta() {
+    }
 
 }

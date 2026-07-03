@@ -41,6 +41,9 @@ public class Medico {
 
     private Boolean disponible;
 
+    @Column(unique = true)
+    private String numeroColegiatura;
+
     // REQUISITO FUNCIONAL: Estado para Activar, Desactivar o Suspender
     // Se fuerza el nombre 'status' en la BD para evitar bloqueos del hosting remoto
     @Column(name = "status", length = 255, nullable = true)
@@ -53,9 +56,6 @@ public class Medico {
     @ManyToMany
     @JoinTable(name = "MEDICO_ESPECIALIDAD", joinColumns = @JoinColumn(name = "id_medico"), inverseJoinColumns = @JoinColumn(name = "id_especialidad"))
     private List<Especialidad> especialidades;
-
-    @OneToMany(mappedBy = "medico")
-    private List<Diagnostico> diagnosticos;
 
     @OneToMany(mappedBy = "medico")
     private List<Control> controles;
@@ -81,7 +81,7 @@ public class Medico {
     }
 
     public void setIdMedico(Integer idMedico) {
-       this.idMedico = idMedico;
+        this.idMedico = idMedico;
     }
 
     public String getPrimerNombre() {
@@ -164,14 +164,6 @@ public class Medico {
         this.especialidades = especialidades;
     }
 
-    public List<Diagnostico> getDiagnosticos() {
-        return diagnosticos;
-    }
-
-    public void setDiagnosticos(List<Diagnostico> diagnosticos) {
-        this.diagnosticos = diagnosticos;
-    }
-
     public List<Control> getControles() {
         return controles;
     }
@@ -211,4 +203,13 @@ public class Medico {
     public void setSedes(List<Sede> sedes) {
         this.sedes = sedes;
     }
+
+    public String getNumeroColegiatura() {
+        return numeroColegiatura;
+    }
+
+    public void setNumeroColegiatura(String numeroColegiatura) {
+        this.numeroColegiatura = numeroColegiatura;
+    }
+
 }

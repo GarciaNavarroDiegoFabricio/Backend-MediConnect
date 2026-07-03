@@ -3,6 +3,7 @@ package com.Backend.MediConnect.clinica.domain.interfaces;
 import java.util.List;
 
 import com.Backend.MediConnect.clinica.domain.dto.CitaResponseDTO;
+import com.Backend.MediConnect.clinica.domain.dto.ConsultaResponseDTO;
 import com.Backend.MediConnect.clinica.domain.dto.PacienteBusquedaDTO;
 import com.Backend.MediConnect.clinica.domain.dto.RecetaDTO;
 import com.Backend.MediConnect.clinica.domain.dto.RecetaResponseDTO;
@@ -16,5 +17,12 @@ public interface IMedicoService {
     RecetaResponseDTO crearReceta(String dniMedico, RecetaDTO dto);
 
     List<CitaResponseDTO> consultarReservas(String dniMedico);
+
     List<PacienteBusquedaDTO> buscarPacientes(String termino);
+
+    void ponerEnEspera(Integer idCita, String dniMedico);
+
+    ConsultaResponseDTO comenzarConsulta(Integer idCita, String dniMedico);
+
+    ConsultaResponseDTO terminarConsulta(Integer idConsulta, String dniMedico);
 }

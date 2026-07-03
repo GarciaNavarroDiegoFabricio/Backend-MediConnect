@@ -34,6 +34,9 @@ public class Cita {
 
     private String estado;
 
+    @OneToOne(mappedBy = "cita")
+    private Consulta consulta;
+
     @ManyToOne
     @JoinColumn(name = "id_sede")
     private Sede sede;

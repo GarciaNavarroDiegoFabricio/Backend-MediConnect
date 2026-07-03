@@ -30,19 +30,21 @@ public class UsuarioService implements IUsuarioService {
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
     private final LoginAttemptService loginAttemptService;
+    private final HorarioRepository horarioRepo;
 
     public UsuarioService(UsuarioRepository usuarioRepo,
-                          PacienteRepository pacienteRepo,
-                          MedicoRepository medicoRepo,
-                          AdminLocalRepository adminLocalRepo,
-                          AdminTotalRepository adminTotalRepo,
-                          SedeRepository sedeRepo,
-                          EspecialidadRepository especialidadRepo,
-                          HistoriaClinicaRepository historiaClinicaRepo,
-                          ReniecService reniecService,
-                          JwtUtil jwtUtil,
-                          PasswordEncoder passwordEncoder,
-                          LoginAttemptService loginAttemptService) {
+            PacienteRepository pacienteRepo,
+            MedicoRepository medicoRepo,
+            AdminLocalRepository adminLocalRepo,
+            AdminTotalRepository adminTotalRepo,
+            SedeRepository sedeRepo,
+            EspecialidadRepository especialidadRepo,
+            HistoriaClinicaRepository historiaClinicaRepo,
+            ReniecService reniecService,
+            JwtUtil jwtUtil,
+            PasswordEncoder passwordEncoder,
+            LoginAttemptService loginAttemptService,
+            HorarioRepository horarioRepo) {
         this.usuarioRepo = usuarioRepo;
         this.pacienteRepo = pacienteRepo;
         this.medicoRepo = medicoRepo;
@@ -55,6 +57,7 @@ public class UsuarioService implements IUsuarioService {
         this.jwtUtil = jwtUtil;
         this.passwordEncoder = passwordEncoder;
         this.loginAttemptService = loginAttemptService;
+        this.horarioRepo = horarioRepo;
     }
 
     @Override
@@ -167,38 +170,115 @@ public class UsuarioService implements IUsuarioService {
     @Override
     @Transactional
     public AuthResponse registrarMedico(RegistroMedicoDTO dto, String dniRegistrador, String rolRegistrador) {
+        if (dto.getDni() == null || dto.getDni().isBlank())
+            throw new RuntimeException("El DNI es obligatorio.");
+
+        if (!dto.getDni().matches("\\d{8}"))
+            throw new RuntimeException("El DNI debe tener 8 dígitos.");
+
         if (usuarioRepo.existsByDni(dto.getDni()))
-            throw new RuntimeException("DNI ya registrado");
+            throw new RuntimeException("El DNI ya está registrado.");
+
+        if (medicoRepo.existsByNumeroColegiatura(dto.getNumeroColegiatura()))
+            throw new RuntimeException("La colegiatura ya existe.");
+
+        if (dto.getEdad() == null || dto.getEdad() < 18)
+            throw new RuntimeException("El médico debe ser mayor de edad.");
+
+        if (dto.getPassword() == null || dto.getPassword().length() < 8)
+            throw new RuntimeException("La contraseña debe tener mínimo 8 caracteres.");
+
+        if (dto.getIdEspecialidades() == null || dto.getIdEspecialidades().isEmpty())
+            throw new RuntimeException("Debe seleccionar al menos una especialidad.");
+
+        if (dto.getHorarios() == null || dto.getHorarios().isEmpty())
+            throw new RuntimeException("Debe registrar al menos un horario.");
 
         Sede sede;
+
         if (rolRegistrador.equals("ROLE_ADMIN_LOCAL")) {
+
             AdministadorLocal adminLocal = adminLocalRepo.findByDni(dniRegistrador)
-                    .orElseThrow(() -> new RuntimeException("Admin Local no encontrado"));
+                    .orElseThrow(() -> new RuntimeException("Administrador Local no encontrado"));
+
             sede = adminLocal.getSede();
+
         } else {
+
             if (dto.getIdSede() == null)
-                throw new RuntimeException("El Admin Total debe especificar una sede");
+                throw new RuntimeException("Debe seleccionar una sede.");
+
             sede = sedeRepo.findById(dto.getIdSede())
-                    .orElseThrow(() -> new RuntimeException("Sede no encontrada"));
+                    .orElseThrow(() -> new RuntimeException("La sede no existe."));
         }
 
         List<Especialidad> especialidades = especialidadRepo.findAllById(dto.getIdEspecialidades());
-        if (especialidades.isEmpty())
-            throw new RuntimeException("Debe asignar al menos una especialidad válida");
+
+        if (especialidades.size() != dto.getIdEspecialidades().size())
+            throw new RuntimeException("Una o más especialidades no existen.");
 
         Medico medico = new Medico();
-        medico.setPrimerNombre(dto.getPrimerNombre());
-        medico.setSegundoNombre(dto.getSegundoNombre());
-        medico.setPrimerApellido(dto.getPrimerApellido());
-        medico.setSegundoApellido(dto.getSegundoApellido());
-        medico.setDni(dto.getDni());
-        medico.setEdad(dto.getEdad());
-        medico.setDisponible(true);
-        medico.setEspecialidades(especialidades);
-        medico.setSedes(List.of(sede));
-        medicoRepo.save(medico);
 
-        return crearUsuarioYToken(dto.getDni(), dto.getPassword(), "MEDICO",
+        medico.setPrimerNombre(dto.getPrimerNombre());
+
+        medico.setSegundoNombre(dto.getSegundoNombre());
+
+        medico.setPrimerApellido(dto.getPrimerApellido());
+
+        medico.setSegundoApellido(dto.getSegundoApellido());
+
+        medico.setDni(dto.getDni());
+
+        medico.setEdad(dto.getEdad());
+
+        medico.setNumeroColegiatura(dto.getNumeroColegiatura());
+
+        medico.setDisponible(
+                dto.getDisponible() != null
+                        ? dto.getDisponible()
+                        : true);
+
+        medico.setEstado("ACTIVO");
+
+        medico.setEspecialidades(especialidades);
+
+        medico.setSedes(List.of(sede));
+
+        medico = medicoRepo.save(medico);
+
+        for (HorarioDTO h : dto.getHorarios()) {
+
+            if (h.getHoraInicio().isAfter(h.getHoraFin()))
+                throw new RuntimeException(
+                        "La hora de inicio debe ser menor que la hora fin.");
+
+            if (h.getIntervaloMinutos() <= 0)
+                throw new RuntimeException(
+                        "El intervalo debe ser mayor que cero.");
+
+            Horario horario = new Horario();
+
+            horario.setMedico(medico);
+
+            horario.setDiaSemana(h.getDiaSemana());
+
+            horario.setHoraInicio(h.getHoraInicio());
+
+            horario.setHoraFin(h.getHoraFin());
+
+            horario.setIntervaloMinutos(h.getIntervaloMinutos());
+
+            horario.setEstado("ACTIVO");
+
+            horario.setMotivo(null);
+
+            horarioRepo.save(horario);
+        }
+
+        return crearUsuarioYToken(
+                dto.getDni(),
+                dto.getPassword(),
+                "MEDICO",
                 dto.getPrimerNombre() + " " + dto.getPrimerApellido());
     }
 
@@ -241,4 +321,5 @@ public class UsuarioService implements IUsuarioService {
         }
         return codigo;
     }
+
 }

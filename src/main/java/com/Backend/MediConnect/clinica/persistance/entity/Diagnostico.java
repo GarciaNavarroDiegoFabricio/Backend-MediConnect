@@ -17,13 +17,17 @@ public class Diagnostico {
 
     private String descripcion;
 
-    @ManyToOne
-    @JoinColumn(name = "id_medico")
-    private Medico medico;
+    @OneToOne
+    @JoinColumn(name = "id_consulta")
+    private Consulta consulta;
 
-    @ManyToOne
-    @JoinColumn(name = "id_paciente")
-    private Paciente paciente;
+    public Consulta getConsulta() {
+        return consulta;
+    }
+
+    public void setConsulta(Consulta consulta) {
+        this.consulta = consulta;
+    }
 
     public Diagnostico() {
     };
@@ -52,19 +56,4 @@ public class Diagnostico {
         this.descripcion = descripcion;
     }
 
-    public Medico getMedico() {
-        return medico;
-    }
-
-    public void setMedico(Medico medico) {
-        this.medico = medico;
-    }
-
-    public Paciente getPaciente() {
-        return paciente;
-    }
-
-    public void setPaciente(Paciente paciente) {
-        this.paciente = paciente;
-    }
 }

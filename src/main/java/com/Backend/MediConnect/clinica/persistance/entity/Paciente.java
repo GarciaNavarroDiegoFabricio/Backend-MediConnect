@@ -40,9 +40,6 @@ public class Paciente {
     private String ubigeo;
 
     @OneToMany(mappedBy = "paciente")
-    private List<Diagnostico> diagnosticos;
-
-    @OneToMany(mappedBy = "paciente")
     private List<Control> controles;
 
     @OneToMany(mappedBy = "paciente")
@@ -133,14 +130,6 @@ public class Paciente {
 
     public void setUbigeo(String ubigeo) {
         this.ubigeo = ubigeo;
-    }
-
-    public List<Diagnostico> getDiagnosticos() {
-        return diagnosticos;
-    }
-
-    public void setDiagnosticos(List<Diagnostico> diagnosticos) {
-        this.diagnosticos = diagnosticos;
     }
 
     public List<Control> getControles() {
