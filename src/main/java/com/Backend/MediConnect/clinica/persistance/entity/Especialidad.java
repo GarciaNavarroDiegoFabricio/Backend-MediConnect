@@ -1,21 +1,13 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-
 package com.Backend.MediConnect.clinica.persistance.entity;
 
 import jakarta.persistence.*;
 
 import java.util.List;
 
-/**
- *
- * @author danie
- */
 @Entity
 @Table(name = "especialidad")
 public class Especialidad {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_especialidad")
@@ -23,6 +15,9 @@ public class Especialidad {
 
     @Column(name = "nombre_especialidad")
     private String nombreEspecialidad;
+
+    @Column(columnDefinition = "boolean default true")
+    private Boolean activo = true;
 
     @ManyToMany(mappedBy = "especialidades")
     private List<Medico> medicos;
@@ -44,6 +39,14 @@ public class Especialidad {
 
     public void setNombreEspecialidad(String nombreEspecialidad) {
         this.nombreEspecialidad = nombreEspecialidad;
+    }
+
+    public Boolean getActivo() {
+        return activo;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
     }
 
     public List<Medico> getMedicos() {

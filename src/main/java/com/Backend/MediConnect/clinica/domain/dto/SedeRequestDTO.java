@@ -1,20 +1,10 @@
 package com.Backend.MediConnect.clinica.domain.dto;
 
-public class SedeResponseDTO {
+public class SedeRequestDTO {
 
-    private Integer idSede;
     private String nombreSede;
     private String ubicacion;
     private String telefono;
-    private Boolean activo;
-
-    public Integer getIdSede() {
-        return idSede;
-    }
-
-    public void setIdSede(Integer idSede) {
-        this.idSede = idSede;
-    }
 
     public String getNombreSede() {
         return nombreSede;
@@ -38,13 +28,5 @@ public class SedeResponseDTO {
 
     public void setTelefono(String telefono) {
         this.telefono = telefono;
-    }
-
-    public Boolean getActivo() {
-        return activo;
-    }
-
-    public void setActivo(Boolean activo) {
-        this.activo = activo;
     }
 }

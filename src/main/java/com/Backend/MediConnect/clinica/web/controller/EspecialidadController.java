@@ -1,41 +1,61 @@
 package com.Backend.MediConnect.clinica.web.controller;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable; //  AGREGA ESTO
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.Backend.MediConnect.clinica.domain.dto.EspecialidadRequestDTO;
 import com.Backend.MediConnect.clinica.domain.dto.EspecialidadResponseDTO;
-import com.Backend.MediConnect.clinica.domain.repository.EspecialidadRepository;
-import com.Backend.MediConnect.clinica.web.mapper.MantenimientoMapper;
+import com.Backend.MediConnect.clinica.domain.interfaces.IEspecialidadService;
 
 @RestController
 @RequestMapping("/api/especialidades")
 public class EspecialidadController {
 
-    private final EspecialidadRepository especialidadRepo;
+    private final IEspecialidadService especialidadService;
 
-    public EspecialidadController(EspecialidadRepository especialidadRepo) {
-        this.especialidadRepo = especialidadRepo;
+    public EspecialidadController(IEspecialidadService especialidadService) {
+        this.especialidadService = especialidadService;
     }
 
     @GetMapping
     public ResponseEntity<List<EspecialidadResponseDTO>> listarEspecialidades() {
-        return ResponseEntity.ok(
-                especialidadRepo.findAll()
-                        .stream()
-                        .map(MantenimientoMapper::toEspecialidadResponse)
-                        .collect(Collectors.toList()));
+        return ResponseEntity.ok(especialidadService.listarEspecialidades());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<EspecialidadResponseDTO> obtenerEspecialidad(@PathVariable Integer id) {
-        return especialidadRepo.findById(id)
-                .map(e -> ResponseEntity.ok(MantenimientoMapper.toEspecialidadResponse(e)))
-                .orElseThrow(() -> new RuntimeException("Especialidad no encontrada"));
+        return ResponseEntity.ok(especialidadService.obtenerEspecialidad(id));
+    }
+
+    @PostMapping
+    public ResponseEntity<EspecialidadResponseDTO> registrarEspecialidad(@RequestBody EspecialidadRequestDTO dto) {
+        return ResponseEntity.ok(especialidadService.registrarEspecialidad(dto));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<EspecialidadResponseDTO> actualizarEspecialidad(@PathVariable Integer id,
+                                                                          @RequestBody EspecialidadRequestDTO dto) {
+        return ResponseEntity.ok(especialidadService.actualizarEspecialidad(id, dto));
+    }
+
+    @PatchMapping("/{id}/inactivar")
+    public ResponseEntity<Void> inactivarEspecialidad(@PathVariable Integer id) {
+        especialidadService.inactivarEspecialidad(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/activar")
+    public ResponseEntity<Void> activarEspecialidad(@PathVariable Integer id) {
+        especialidadService.activarEspecialidad(id);
+        return ResponseEntity.noContent().build();
     }
 }

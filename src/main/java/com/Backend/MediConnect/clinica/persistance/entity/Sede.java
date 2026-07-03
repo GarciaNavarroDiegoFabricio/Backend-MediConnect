@@ -7,6 +7,7 @@ import java.util.List;
 @Entity
 @Table(name = "sede")
 public class Sede {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_sede")
@@ -16,6 +17,11 @@ public class Sede {
     private String nombreSede;
 
     private String ubicacion;
+
+    private String telefono;
+
+    @Column(columnDefinition = "boolean default true")
+    private Boolean activo = true;
 
     @ManyToMany(mappedBy = "sedes")
     private List<Medico> medicos;
@@ -27,7 +33,7 @@ public class Sede {
     private List<AdministadorLocal> adminsLocales;
 
     public Sede() {
-    };
+    }
 
     public Integer getIdSede() {
         return idSede;
@@ -51,6 +57,22 @@ public class Sede {
 
     public void setUbicacion(String ubicacion) {
         this.ubicacion = ubicacion;
+    }
+
+    public String getTelefono() {
+        return telefono;
+    }
+
+    public void setTelefono(String telefono) {
+        this.telefono = telefono;
+    }
+
+    public Boolean getActivo() {
+        return activo;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
     }
 
     public List<Medico> getMedicos() {
