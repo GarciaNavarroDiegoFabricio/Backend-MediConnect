@@ -10,6 +10,7 @@ import com.Backend.MediConnect.clinica.domain.dto.RecetaDTO;
 import com.Backend.MediConnect.clinica.domain.dto.RecetaResponseDTO;
 import com.Backend.MediConnect.clinica.domain.dto.ReporteResponseDTO;
 import com.Backend.MediConnect.clinica.domain.interfaces.IMedicoService;
+import com.Backend.MediConnect.clinica.domain.interfaces.IPacienteConsultaService;
 
 import java.util.List;
 
@@ -18,9 +19,11 @@ import java.util.List;
 public class MedicoController {
 
     private final IMedicoService medicoService;
+    private final IPacienteConsultaService pacienteConsultaService;
 
-    public MedicoController(IMedicoService medicoService) {
+    public MedicoController(IMedicoService medicoService, IPacienteConsultaService pacienteConsultaService) {
         this.medicoService = medicoService;
+        this.pacienteConsultaService = pacienteConsultaService;
     }
 
     @PutMapping("/disponibilidad")
@@ -47,5 +50,11 @@ public class MedicoController {
     public ResponseEntity<List<PacienteBusquedaDTO>> buscarPacientes(@RequestParam String termino) {
         List<PacienteBusquedaDTO> resultados = medicoService.buscarPacientes(termino);
         return ResponseEntity.ok(resultados);
+    }
+
+    @PatchMapping("/consulta/{idConsulta}/finalizar")
+    public ResponseEntity<Void> finalizarConsulta(@PathVariable Integer idConsulta) {
+        pacienteConsultaService.finalizarConsulta(idConsulta);
+        return ResponseEntity.noContent().build();
     }
 }

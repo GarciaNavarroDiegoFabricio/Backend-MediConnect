@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import java.util.List;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -26,4 +27,7 @@ public class Consulta {
     @OneToMany(mappedBy = "consulta")
     private List<Receta> recetas;
 
+    // Campo nuevo para la finalización
+    @Column(name = "fecha_hora_fin")
+    private LocalDateTime fechaHoraFin;
 }

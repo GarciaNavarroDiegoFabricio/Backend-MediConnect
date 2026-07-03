@@ -42,6 +42,9 @@ public class Cita {
 
     private Integer prioridad;
 
+    @Column(name = "link_videollamada")
+    private String linkVideollamada;
+
     @OneToMany(mappedBy = "cita")
     private List<Notificacion> notificaciones;
 
@@ -134,6 +137,14 @@ public class Cita {
 
     public void setPrioridad(Integer prioridad) {
         this.prioridad = prioridad;
+    }
+
+    public String getLinkVideollamada() {
+        return linkVideollamada;
+    }
+
+    public void setLinkVideollamada(String linkVideollamada) {
+        this.linkVideollamada = linkVideollamada;
     }
 
     public List<Notificacion> getNotificaciones() {

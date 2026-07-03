@@ -21,4 +21,5 @@ public class CitaResponseDTO {
     private String nombrePaciente;
     private String dniPaciente;
     private String nombreSede;
+    private String linkVideollamada;
 }

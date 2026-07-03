@@ -23,6 +23,7 @@ import com.Backend.MediConnect.clinica.persistance.entity.Paciente;
 import com.Backend.MediConnect.clinica.persistance.entity.Sede;
 import com.Backend.MediConnect.clinica.web.mapper.CitaMapper;
 import com.Backend.MediConnect.clinica.web.mapper.PacienteMapper;
+import com.Backend.MediConnect.clinica.domain.services.VideollamadaService;
 
 @Service
 public class PacienteService implements IPacienteService {
@@ -31,15 +32,18 @@ public class PacienteService implements IPacienteService {
     private final MedicoRepository medicoRepo;
     private final SedeRepository sedeRepo;
     private final CitaRepository citaRepo;
+    private final VideollamadaService videollamadaService;
 
     public PacienteService(PacienteRepository pacienteRepo,
                            MedicoRepository medicoRepo,
                            SedeRepository sedeRepo,
-                           CitaRepository citaRepo) {
+                           CitaRepository citaRepo,
+                           VideollamadaService videollamadaService) {
         this.pacienteRepo = pacienteRepo;
         this.medicoRepo = medicoRepo;
         this.sedeRepo = sedeRepo;
         this.citaRepo = citaRepo;
+        this.videollamadaService = videollamadaService;
     }
 
     @Override
@@ -102,6 +106,12 @@ public class PacienteService implements IPacienteService {
         cita.setPrioridad(dto.getPrioridad());
         cita.setDuracionEstimada(dto.getDuracionEstimada());
         cita.setEstado("PENDIENTE");
+
+        // INTEGRACIÓN DE VIDEOLLAMADA: Generar enlace solo si el tipo es 'VIRTUAL'
+        // Asumiendo que dto.getTipo() contiene valores como "PRESENCIAL" o "VIRTUAL"
+        if ("VIRTUAL".equalsIgnoreCase(dto.getTipo())) {
+            cita.setLinkVideollamada(videollamadaService.generarEnlace());
+        }
 
         return CitaMapper.toResponse(citaRepo.save(cita));
     }
