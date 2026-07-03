@@ -7,15 +7,16 @@ import org.springframework.web.bind.annotation.*;
 import com.Backend.MediConnect.clinica.domain.dto.*;
 import com.Backend.MediConnect.clinica.domain.interfaces.IUsuarioService;
 
+import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
 public class AuthController {
 
     private final IUsuarioService usuarioService;
-
-    public AuthController(IUsuarioService usuarioService) {
-        this.usuarioService = usuarioService;
-    }
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
@@ -38,10 +39,21 @@ public class AuthController {
     }
 
     @PostMapping("/registro/medico")
-    public ResponseEntity<AuthResponse> registrarMedico(@RequestBody RegistroMedicoDTO dto,
-            Authentication auth) {
+    public ResponseEntity<AuthResponse> registrarMedico(@RequestBody RegistroMedicoDTO dto, Authentication auth) {
         String dni = auth.getName();
         String rol = auth.getAuthorities().iterator().next().getAuthority();
         return ResponseEntity.ok(usuarioService.registrarMedico(dto, dni, rol));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UsuarioPerfilDTO> obtenerPerfil(Authentication auth) {
+        String dni = auth.getName();
+        String rol = auth.getAuthorities().iterator().next().getAuthority().replace("ROLE_", "");
+        return ResponseEntity.ok(usuarioService.obtenerPerfil(dni, rol));
+    }
+
+    @GetMapping("/medicos")
+    public ResponseEntity<List<UsuarioPerfilDTO>> listarMedicos() {
+        return ResponseEntity.ok(usuarioService.listarMedicos());
     }
 }

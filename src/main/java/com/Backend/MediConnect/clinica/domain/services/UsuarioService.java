@@ -11,11 +11,14 @@ import com.Backend.MediConnect.clinica.persistance.entity.*;
 import com.Backend.MediConnect.clinica.web.security.JwtUtil;
 import com.Backend.MediConnect.clinica.web.security.LoginAttemptService;
 
+import lombok.RequiredArgsConstructor;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class UsuarioService implements IUsuarioService {
 
     private final UsuarioRepository usuarioRepo;
@@ -31,34 +34,6 @@ public class UsuarioService implements IUsuarioService {
     private final PasswordEncoder passwordEncoder;
     private final LoginAttemptService loginAttemptService;
     private final HorarioRepository horarioRepo;
-
-    public UsuarioService(UsuarioRepository usuarioRepo,
-            PacienteRepository pacienteRepo,
-            MedicoRepository medicoRepo,
-            AdminLocalRepository adminLocalRepo,
-            AdminTotalRepository adminTotalRepo,
-            SedeRepository sedeRepo,
-            EspecialidadRepository especialidadRepo,
-            HistoriaClinicaRepository historiaClinicaRepo,
-            ReniecService reniecService,
-            JwtUtil jwtUtil,
-            PasswordEncoder passwordEncoder,
-            LoginAttemptService loginAttemptService,
-            HorarioRepository horarioRepo) {
-        this.usuarioRepo = usuarioRepo;
-        this.pacienteRepo = pacienteRepo;
-        this.medicoRepo = medicoRepo;
-        this.adminLocalRepo = adminLocalRepo;
-        this.adminTotalRepo = adminTotalRepo;
-        this.sedeRepo = sedeRepo;
-        this.especialidadRepo = especialidadRepo;
-        this.historiaClinicaRepo = historiaClinicaRepo;
-        this.reniecService = reniecService;
-        this.jwtUtil = jwtUtil;
-        this.passwordEncoder = passwordEncoder;
-        this.loginAttemptService = loginAttemptService;
-        this.horarioRepo = horarioRepo;
-    }
 
     @Override
     public AuthResponse login(AuthRequest request) {
@@ -194,17 +169,12 @@ public class UsuarioService implements IUsuarioService {
         Sede sede;
 
         if (rolRegistrador.equals("ROLE_ADMIN_LOCAL")) {
-
             AdministadorLocal adminLocal = adminLocalRepo.findByDni(dniRegistrador)
                     .orElseThrow(() -> new RuntimeException("Administrador Local no encontrado"));
-
             sede = adminLocal.getSede();
-
         } else {
-
             if (dto.getIdSede() == null)
                 throw new RuntimeException("Debe seleccionar una sede.");
-
             sede = sedeRepo.findById(dto.getIdSede())
                     .orElseThrow(() -> new RuntimeException("La sede no existe."));
         }
@@ -215,72 +185,99 @@ public class UsuarioService implements IUsuarioService {
             throw new RuntimeException("Una o más especialidades no existen.");
 
         Medico medico = new Medico();
-
         medico.setPrimerNombre(dto.getPrimerNombre());
-
         medico.setSegundoNombre(dto.getSegundoNombre());
-
         medico.setPrimerApellido(dto.getPrimerApellido());
-
         medico.setSegundoApellido(dto.getSegundoApellido());
-
         medico.setDni(dto.getDni());
-
         medico.setEdad(dto.getEdad());
-
         medico.setNumeroColegiatura(dto.getNumeroColegiatura());
-
-        medico.setDisponible(
-                dto.getDisponible() != null
-                        ? dto.getDisponible()
-                        : true);
-
+        medico.setDisponible(dto.getDisponible() != null ? dto.getDisponible() : true);
         medico.setEstado("ACTIVO");
-
         medico.setEspecialidades(especialidades);
-
         medico.setSedes(List.of(sede));
 
         medico = medicoRepo.save(medico);
 
         if (dto.getHorarios() != null && !dto.getHorarios().isEmpty()) {
-
             for (HorarioDTO h : dto.getHorarios()) {
-
                 if (h.getHoraInicio().isAfter(h.getHoraFin()))
-                    throw new RuntimeException(
-                            "La hora de inicio debe ser menor que la hora fin.");
+                    throw new RuntimeException("La hora de inicio debe ser menor que la hora fin.");
 
                 if (h.getIntervaloMinutos() <= 0)
-                    throw new RuntimeException(
-                            "El intervalo debe ser mayor que cero.");
+                    throw new RuntimeException("El intervalo debe ser mayor que cero.");
 
                 Horario horario = new Horario();
-
                 horario.setMedico(medico);
-
                 horario.setDiaSemana(h.getDiaSemana());
-
                 horario.setHoraInicio(h.getHoraInicio());
-
                 horario.setHoraFin(h.getHoraFin());
-
                 horario.setIntervaloMinutos(h.getIntervaloMinutos());
-
                 horario.setEstado("ACTIVO");
-
                 horario.setMotivo(null);
-
                 horarioRepo.save(horario);
             }
-
         }
 
-        return crearUsuarioYToken(
-                dto.getDni(),
-                dto.getPassword(),
-                "MEDICO",
+        return crearUsuarioYToken(dto.getDni(), dto.getPassword(), "MEDICO",
                 dto.getPrimerNombre() + " " + dto.getPrimerApellido());
+    }
+
+    @Override
+    public UsuarioPerfilDTO obtenerPerfil(String dni, String rol) {
+        UsuarioPerfilDTO.UsuarioPerfilDTOBuilder builder = UsuarioPerfilDTO.builder()
+                .dni(dni)
+                .rol(rol);
+
+        switch (rol) {
+            case "PACIENTE" -> pacienteRepo.findByDni(dni).ifPresent(p -> builder
+                    .primerNombre(p.getPrimerNombre())
+                    .segundoNombre(p.getSegundoNombre())
+                    .primerApellido(p.getPrimerApellido())
+                    .segundoApellido(p.getSegundoApellido())
+                    .correo(p.getCorreo())
+                    .telefono(p.getTelefono())
+                    .fechaNacimiento(p.getFechaNacimiento()));
+            case "MEDICO" -> medicoRepo.findByDni(dni).ifPresent(m -> aplicarDatosMedico(builder, m));
+            case "ADMIN_LOCAL" -> adminLocalRepo.findByDni(dni).ifPresent(a -> builder
+                    .primerNombre(a.getPrimerNombre())
+                    .segundoNombre(a.getSegundoNombre())
+                    .primerApellido(a.getPrimerApellido())
+                    .segundoApellido(a.getSegundoApellido())
+                    .sede(a.getSede().getNombreSede()));
+            case "ADMIN_TOTAL" -> adminTotalRepo.findByDni(dni).ifPresent(a -> builder
+                    .primerNombre(a.getPrimerNombre())
+                    .segundoNombre(a.getSegundoNombre())
+                    .primerApellido(a.getPrimerApellido())
+                    .segundoApellido(a.getSegundoApellido()));
+            default -> throw new RuntimeException("Rol no reconocido");
+        }
+
+        return builder.build();
+    }
+
+    @Override
+    public List<UsuarioPerfilDTO> listarMedicos() {
+        return medicoRepo.findAll().stream()
+                .map(m -> {
+                    UsuarioPerfilDTO.UsuarioPerfilDTOBuilder builder = UsuarioPerfilDTO.builder()
+                            .dni(m.getDni())
+                            .rol("MEDICO");
+                    aplicarDatosMedico(builder, m);
+                    return builder.build();
+                })
+                .toList();
+    }
+
+    private void aplicarDatosMedico(UsuarioPerfilDTO.UsuarioPerfilDTOBuilder builder, Medico m) {
+        builder.id(m.getIdMedico())
+                .primerNombre(m.getPrimerNombre())
+                .segundoNombre(m.getSegundoNombre())
+                .primerApellido(m.getPrimerApellido())
+                .segundoApellido(m.getSegundoApellido())
+                .numeroColegiatura(m.getNumeroColegiatura())
+                .especialidades(m.getEspecialidades().stream().map(Especialidad::getNombreEspecialidad).toList())
+                .sede(m.getSedes().isEmpty() ? null : m.getSedes().get(0).getNombreSede());
     }
 
     private AuthResponse crearUsuarioYToken(String dni, String rawPassword, String rol, String nombre) {
@@ -322,5 +319,4 @@ public class UsuarioService implements IUsuarioService {
         }
         return codigo;
     }
-
 }
