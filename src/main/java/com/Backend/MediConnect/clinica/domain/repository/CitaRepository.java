@@ -12,9 +12,9 @@ import com.Backend.MediConnect.clinica.persistance.entity.Paciente;
 public interface CitaRepository extends JpaRepository<Cita, Integer> {
     List<Cita> findByPaciente(Paciente paciente);
 
-    List<Cita> findByMedicoAndEstadoOrderByFechaAscHoraAsc(
+    List<Cita> findByMedicoAndEstadoInOrderByFechaAscHoraAsc(
             Medico medico,
-            String estado);
+            List<String> estados);
 
     List<Cita> findByMedicoAndEstado(Medico medico, String estado);
 

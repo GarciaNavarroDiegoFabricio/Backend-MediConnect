@@ -32,20 +32,21 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
+
             if (jwtUtil.esValido(token)) {
+
                 String dni = jwtUtil.extraerDni(token);
                 String rol = jwtUtil.extraerRol(token);
+
+                System.out.println("ROL DEL TOKEN: " + rol);
 
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                         dni,
                         null,
                         List.of(new SimpleGrantedAuthority("ROLE_" + rol)));
+
                 SecurityContextHolder.getContext().setAuthentication(auth);
-
-                // Se genera un nuevo token para darle más tiempo al usuario
-                String nuevoToken = jwtUtil.generarToken(dni, rol);
-
-                response.setHeader("Authorization", "Bearer " + nuevoToken);
+                System.out.println("AUTH: " + auth.getAuthorities());
             }
         }
 

@@ -112,10 +112,14 @@ public class MedicoService implements IMedicoService {
 
         @Override
         public List<CitaResponseDTO> consultarReservas(String dniMedico) {
+
                 Medico medico = medicoRepo.findByDni(dniMedico)
                                 .orElseThrow(() -> new RuntimeException("Médico no encontrado"));
+
+                List<String> estadosValidos = List.of("PENDIENTE", "EN_ESPERA");
+
                 return citaRepo
-                                .findByMedicoAndEstadoOrderByFechaAscHoraAsc(medico, "PENDIENTE")
+                                .findByMedicoAndEstadoInOrderByFechaAscHoraAsc(medico, estadosValidos)
                                 .stream()
                                 .map(CitaMapper::toResponse)
                                 .collect(Collectors.toList());
@@ -241,40 +245,27 @@ public class MedicoService implements IMedicoService {
                         throw new RuntimeException("La consulta no está en curso.");
                 }
 
-                if (consulta.getHoraInicio() == null) {
-                        throw new RuntimeException("La consulta aún no ha iniciado.");
-                }
-
-                if (consulta.getHoraFin() != null) {
-                        throw new RuntimeException("La consulta ya fue finalizada.");
-                }
-
-                Medico medicoLogueado = medicoRepo.findByDni(dniMedico)
+                Medico medico = medicoRepo.findByDni(dniMedico)
                                 .orElseThrow(() -> new RuntimeException("Médico no encontrado"));
 
-                consulta.setHoraFin(LocalDateTime.now());
-
-                consulta.setEstado("FINALIZADA");
-
-                consultaRepo.save(consulta);
-
-                Cita cita = consulta.getCita();
-
-                if (!cita.getMedico().getIdMedico().equals(medicoLogueado.getIdMedico())) {
-                        throw new RuntimeException("No tiene permisos para modificar esta cita.");
+                if (!consulta.getMedico().getIdMedico().equals(medico.getIdMedico())) {
+                        throw new RuntimeException("No tiene permisos para modificar esta consulta.");
                 }
 
-                cita.setEstado("ATENDIDA");
+                // CONSULTA
+                consulta.setHoraFin(LocalDateTime.now());
+                consulta.setEstado("FINALIZADA");
+                consultaRepo.save(consulta);
 
+                // CITA (CLAVE)
+                Cita cita = consulta.getCita();
+                cita.setEstado("ATENDIDA");
                 citaRepo.save(cita);
 
-                Medico medico = consulta.getMedico();
-
+                // MÉDICO
                 medico.setEstado("DISPONIBLE");
-
                 medicoRepo.save(medico);
 
                 return ConsultaMapper.toResponse(consulta);
-
         }
 }

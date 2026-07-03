@@ -35,7 +35,7 @@ public class ConsultaService {
         consulta.setMedico(cita.getMedico());
         consulta.setPaciente(cita.getPaciente());
         consulta.setHoraInicio(LocalDateTime.now());
-        consulta.setEstado("EN_PROCESO");
+        consulta.setEstado("EN_CURSO");
 
         return consultaRepository.save(consulta);
     }
