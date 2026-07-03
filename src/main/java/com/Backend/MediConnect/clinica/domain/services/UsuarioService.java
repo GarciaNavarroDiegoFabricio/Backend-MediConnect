@@ -269,6 +269,24 @@ public class UsuarioService implements IUsuarioService {
                 .toList();
     }
 
+    @Override
+    public List<UsuarioPerfilDTO> listarPacientes() {
+        return pacienteRepo.findAll().stream()
+                .map(p -> UsuarioPerfilDTO.builder()
+                        .id(p.getIdPaciente())
+                        .dni(p.getDni())
+                        .rol("PACIENTE")
+                        .primerNombre(p.getPrimerNombre())
+                        .segundoNombre(p.getSegundoNombre())
+                        .primerApellido(p.getPrimerApellido())
+                        .segundoApellido(p.getSegundoApellido())
+                        .correo(p.getCorreo())
+                        .telefono(p.getTelefono())
+                        .fechaNacimiento(p.getFechaNacimiento())
+                        .build())
+                .toList();
+    }
+
     private void aplicarDatosMedico(UsuarioPerfilDTO.UsuarioPerfilDTOBuilder builder, Medico m) {
         builder.id(m.getIdMedico())
                 .primerNombre(m.getPrimerNombre())

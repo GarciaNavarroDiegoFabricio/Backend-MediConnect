@@ -18,4 +18,5 @@ public interface IUsuarioService {
     UsuarioPerfilDTO obtenerPerfil(String dni, String rol);
 
     List<UsuarioPerfilDTO> listarMedicos();
+    List<UsuarioPerfilDTO> listarPacientes();
 }

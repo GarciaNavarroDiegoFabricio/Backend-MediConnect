@@ -33,10 +33,11 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login").permitAll()
-                        .requestMatchers("/api/auth/me").hasAnyRole("ADMIN_LOCAL", "ADMIN_TOTAL" , "PACIENTE" ,"MEDICO")
+                        .requestMatchers("/api/auth/me").hasAnyRole("ADMIN_LOCAL", "ADMIN_TOTAL", "PACIENTE", "MEDICO")
                         .requestMatchers("/api/auth/registro/paciente").permitAll()
                         .requestMatchers("/api/auth/registro/admin-total").hasRole("ADMIN_TOTAL")
                         .requestMatchers("/api/auth/medicos").hasRole("ADMIN_LOCAL")
+                        .requestMatchers("/api/auth/pacientes").hasRole("ADMIN_LOCAL")
                         .requestMatchers("/api/auth/registro/admin-local").hasRole("ADMIN_TOTAL")
                         .requestMatchers("/api/auth/registro/medico").hasAnyRole("ADMIN_LOCAL", "ADMIN_TOTAL")
                         .requestMatchers("/api/paciente/**").hasRole("PACIENTE")
@@ -63,14 +64,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:5173",
-                "http://localhost:3000",
-                "https://backend-mediconnect-gdln.onrender.com",
-                "https://frontend-medi-connect-54k6.vercel.app"
-        ));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setExposedHeaders(Arrays.asList("Authorization"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 

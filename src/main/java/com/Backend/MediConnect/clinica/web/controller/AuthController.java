@@ -56,4 +56,9 @@ public class AuthController {
     public ResponseEntity<List<UsuarioPerfilDTO>> listarMedicos() {
         return ResponseEntity.ok(usuarioService.listarMedicos());
     }
+
+    @GetMapping("/pacientes")
+    public ResponseEntity<List<UsuarioPerfilDTO>> listarPacientes() {
+        return ResponseEntity.ok(usuarioService.listarPacientes());
+    }
 }
