@@ -191,9 +191,6 @@ public class UsuarioService implements IUsuarioService {
         if (dto.getIdEspecialidades() == null || dto.getIdEspecialidades().isEmpty())
             throw new RuntimeException("Debe seleccionar al menos una especialidad.");
 
-        if (dto.getHorarios() == null || dto.getHorarios().isEmpty())
-            throw new RuntimeException("Debe registrar al menos un horario.");
-
         Sede sede;
 
         if (rolRegistrador.equals("ROLE_ADMIN_LOCAL")) {
@@ -246,33 +243,37 @@ public class UsuarioService implements IUsuarioService {
 
         medico = medicoRepo.save(medico);
 
-        for (HorarioDTO h : dto.getHorarios()) {
+        if (dto.getHorarios() != null && !dto.getHorarios().isEmpty()) {
 
-            if (h.getHoraInicio().isAfter(h.getHoraFin()))
-                throw new RuntimeException(
-                        "La hora de inicio debe ser menor que la hora fin.");
+            for (HorarioDTO h : dto.getHorarios()) {
 
-            if (h.getIntervaloMinutos() <= 0)
-                throw new RuntimeException(
-                        "El intervalo debe ser mayor que cero.");
+                if (h.getHoraInicio().isAfter(h.getHoraFin()))
+                    throw new RuntimeException(
+                            "La hora de inicio debe ser menor que la hora fin.");
 
-            Horario horario = new Horario();
+                if (h.getIntervaloMinutos() <= 0)
+                    throw new RuntimeException(
+                            "El intervalo debe ser mayor que cero.");
 
-            horario.setMedico(medico);
+                Horario horario = new Horario();
 
-            horario.setDiaSemana(h.getDiaSemana());
+                horario.setMedico(medico);
 
-            horario.setHoraInicio(h.getHoraInicio());
+                horario.setDiaSemana(h.getDiaSemana());
 
-            horario.setHoraFin(h.getHoraFin());
+                horario.setHoraInicio(h.getHoraInicio());
 
-            horario.setIntervaloMinutos(h.getIntervaloMinutos());
+                horario.setHoraFin(h.getHoraFin());
 
-            horario.setEstado("ACTIVO");
+                horario.setIntervaloMinutos(h.getIntervaloMinutos());
 
-            horario.setMotivo(null);
+                horario.setEstado("ACTIVO");
 
-            horarioRepo.save(horario);
+                horario.setMotivo(null);
+
+                horarioRepo.save(horario);
+            }
+
         }
 
         return crearUsuarioYToken(
