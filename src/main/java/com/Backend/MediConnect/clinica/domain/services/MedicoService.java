@@ -1,271 +1,167 @@
 package com.Backend.MediConnect.clinica.domain.services;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import com.Backend.MediConnect.clinica.domain.dto.*;
+import com.Backend.MediConnect.clinica.domain.dto.request.MedicoComplementoRequestDTO;
+import com.Backend.MediConnect.clinica.domain.dto.response.MedicoResponseDTO;
+import com.Backend.MediConnect.clinica.domain.exception.BusinessException;
+import com.Backend.MediConnect.clinica.domain.exception.ResourceNotFoundException;
+import com.Backend.MediConnect.clinica.domain.interfaces.RolUsuario;
+import com.Backend.MediConnect.clinica.domain.repository.*;
+import com.Backend.MediConnect.clinica.persistance.entity.*;
+import com.Backend.MediConnect.clinica.web.mapper.MedicoMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.Backend.MediConnect.clinica.domain.interfaces.IMedicoService;
-import com.Backend.MediConnect.clinica.domain.repository.CitaRepository;
-import com.Backend.MediConnect.clinica.domain.repository.ConsultaRepository;
-import com.Backend.MediConnect.clinica.domain.repository.HorarioRepository;
-import com.Backend.MediConnect.clinica.domain.repository.MedicoRepository;
-import com.Backend.MediConnect.clinica.domain.repository.PacienteRepository;
-import com.Backend.MediConnect.clinica.domain.repository.RecetaRepository;
-import com.Backend.MediConnect.clinica.domain.repository.ReporteRepository;
-import com.Backend.MediConnect.clinica.persistance.entity.Cita;
-import com.Backend.MediConnect.clinica.persistance.entity.Consulta;
-import com.Backend.MediConnect.clinica.persistance.entity.Medico;
-import com.Backend.MediConnect.clinica.persistance.entity.Paciente;
-import com.Backend.MediConnect.clinica.persistance.entity.Receta;
-import com.Backend.MediConnect.clinica.persistance.entity.Reporte;
-import com.Backend.MediConnect.clinica.web.mapper.CitaMapper;
-import com.Backend.MediConnect.clinica.web.mapper.ConsultaMapper;
-import com.Backend.MediConnect.clinica.web.mapper.RecetaMapper;
-import com.Backend.MediConnect.clinica.web.mapper.ReporteMapper;
+import java.util.List;
 
 @Service
-public class MedicoService implements IMedicoService {
+public class MedicoService {
 
-        private final MedicoRepository medicoRepo;
-        private final PacienteRepository pacienteRepo;
-        private final ConsultaRepository consultaRepo;
-        private final RecetaRepository recetaRepo;
-        private final CitaRepository citaRepo;
-        private final ReporteRepository reporteRepo;
-        private final HorarioRepository horarioRepo;
+    private final IMedicoRepository medicoRepository;
+    private final IUsuarioRepository usuarioRepository;
+    private final IPersonaRepository personaRepository;
+    private final IEspecialidadRepository especialidadRepository;
+    private final ISedeRepository sedeRepository;
+    private final MedicoMapper medicoMapper;
 
-        public MedicoService(MedicoRepository medicoRepo,
-                        PacienteRepository pacienteRepo,
-                        ConsultaRepository consultaRepo,
-                        RecetaRepository recetaRepo,
-                        CitaRepository citaRepo,
-                        ReporteRepository reporteRepo,
-                        HorarioRepository horarioRepo) {
-                this.medicoRepo = medicoRepo;
-                this.pacienteRepo = pacienteRepo;
-                this.consultaRepo = consultaRepo;
-                this.recetaRepo = recetaRepo;
-                this.citaRepo = citaRepo;
-                this.reporteRepo = reporteRepo;
-                this.horarioRepo = horarioRepo;
+    public MedicoService(IMedicoRepository medicoRepository, IUsuarioRepository usuarioRepository,
+                         IPersonaRepository personaRepository, IEspecialidadRepository especialidadRepository,
+                         ISedeRepository sedeRepository, MedicoMapper medicoMapper) {
+        this.medicoRepository = medicoRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.personaRepository = personaRepository;
+        this.especialidadRepository = especialidadRepository;
+        this.sedeRepository = sedeRepository;
+        this.medicoMapper = medicoMapper;
+    }
+
+    @Transactional
+    public MedicoResponseDTO completarDatos(Long idUsuario, MedicoComplementoRequestDTO request, String usuarioCreacion) {
+        Usuario usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado."));
+
+        if (!usuario.getIdRol().equals(RolUsuario.MEDICO.getId())) {
+            throw new BusinessException("Este usuario no tiene el rol de Médico.");
         }
 
-        @Override
-        @Transactional
-        public void cambiarDisponibilidad(String dniMedico, Boolean disponible) {
-                Medico medico = medicoRepo.findByDni(dniMedico)
-                                .orElseThrow(() -> new RuntimeException("Médico no encontrado"));
-                medico.setDisponible(disponible);
-                medicoRepo.save(medico);
+        Persona persona = personaRepository.findByUsuario_IdUsuario(idUsuario)
+                .orElseThrow(() -> new ResourceNotFoundException("Datos personales no encontrados."));
+
+        if (medicoRepository.findByPersona_IdPersona(persona.getIdPersona()).isPresent()) {
+            throw new BusinessException("Este médico ya tiene datos profesionales registrados.");
         }
 
-        @Override
-        @Transactional
-        public ReporteResponseDTO generarReporteConsulta(String dniMedico) {
-                Medico medico = medicoRepo.findByDni(dniMedico)
-                                .orElseThrow(() -> new RuntimeException("Médico no encontrado"));
-
-                List<Cita> citas = citaRepo.findByMedico(medico);
-
-                long atendidas = citas.stream().filter(c -> c.getEstado().equals("ATENDIDA")).count();
-                long canceladas = citas.stream().filter(c -> c.getEstado().equals("CANCELADA")).count();
-                long reprogramadas = citas.stream().filter(c -> c.getEstado().equals("REPROGRAMADA")).count();
-                long pendientes = citas.stream().filter(c -> c.getEstado().equals("PENDIENTE")).count();
-
-                Reporte reporte = new Reporte();
-                reporte.setFechaReporte(LocalTime.now());
-                reporte.setCitasAtendidas((int) atendidas);
-                reporte.setCitasCanceladas((int) canceladas);
-                reporte.setCitasReprogramadas((int) reprogramadas);
-                reporte.setCitasPendientes((int) pendientes);
-
-                return ReporteMapper.toResponse(reporteRepo.save(reporte));
+        if (medicoRepository.existsByNumeroColegiatura(request.getNumeroColegiatura())) {
+            throw new BusinessException("El número de colegiatura ya está registrado.");
         }
 
-        @Override
-        @Transactional
-        public RecetaResponseDTO crearReceta(String dniMedico, RecetaDTO dto) {
-                Medico medico = medicoRepo.findByDni(dniMedico)
-                                .orElseThrow(() -> new RuntimeException("Médico no encontrado"));
-
-                Paciente paciente = pacienteRepo.findById(dto.getIdPaciente())
-                                .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
-
-                Consulta consulta = consultaRepo.findById(dto.getIdConsulta())
-                                .orElseThrow(() -> new RuntimeException("Consulta no encontrada"));
-
-                Receta receta = new Receta();
-                receta.setMedico(medico);
-                receta.setPaciente(paciente);
-                receta.setConsulta(consulta);
-                receta.setPrescripcion(dto.getPrescripcion());
-                receta.setFecha(dto.getFecha());
-
-                return RecetaMapper.toResponse(recetaRepo.save(receta));
+        if (usuario.getIdSede() == null) {
+            throw new BusinessException("El usuario no tiene una sede asignada.");
         }
 
-        @Override
-        public List<CitaResponseDTO> consultarReservas(String dniMedico) {
+        Especialidad especialidad = especialidadRepository.findById(request.getIdEspecialidad())
+                .orElseThrow(() -> new ResourceNotFoundException("Especialidad no encontrada."));
 
-                Medico medico = medicoRepo.findByDni(dniMedico)
-                                .orElseThrow(() -> new RuntimeException("Médico no encontrado"));
+        Medico medico = Medico.builder()
+                .persona(persona)
+                .numeroColegiatura(request.getNumeroColegiatura())
+                .especialidad(especialidad)
+                .disponible(true)
+                .estado("ACTIVO")
+                .usuarioCreacion(usuarioCreacion)
+                .build();
 
-                List<String> estadosValidos = List.of("PENDIENTE", "EN_ESPERA");
+        medico = medicoRepository.save(medico);
+        return medicoMapper.toResponse(medico);
+    }
 
-                return citaRepo
-                                .findByMedicoAndEstadoInOrderByFechaAscHoraAsc(medico, estadosValidos)
-                                .stream()
-                                .map(CitaMapper::toResponse)
-                                .collect(Collectors.toList());
+    @Transactional
+    public MedicoResponseDTO actualizarSedeYEspecialidad(Long idMedico, Long idEspecialidad, Long idSede, String usuarioModificacion) {
+        Medico medico = medicoRepository.findById(idMedico)
+                .orElseThrow(() -> new ResourceNotFoundException("Médico no encontrado."));
+
+        if (idEspecialidad != null) {
+            Especialidad especialidad = especialidadRepository.findById(idEspecialidad)
+                    .orElseThrow(() -> new ResourceNotFoundException("Especialidad no encontrada."));
+            medico.setEspecialidad(especialidad);
+            medico.setUsuarioModificacion(usuarioModificacion);
+            medicoRepository.save(medico);
         }
 
-        @Override
-        public List<PacienteBusquedaDTO> buscarPacientes(String termino) {
-                return List.of();
+        if (idSede != null) {
+            sedeRepository.findById(idSede)
+                    .orElseThrow(() -> new ResourceNotFoundException("Sede no encontrada."));
+
+            Usuario usuario = medico.getPersona().getUsuario();
+            usuario.setIdSede(idSede);
+            usuario.setUsuarioModificacion(usuarioModificacion);
+            usuarioRepository.save(usuario);
         }
 
-        @Transactional
-        @Override
-        public void ponerEnEspera(Integer idCita, String dniMedico) {
+        return medicoMapper.toResponse(medico);
+    }
 
-                Cita cita = citaRepo.findById(idCita)
-                                .orElseThrow(() -> new RuntimeException("Cita no encontrada"));
+    @Transactional
+    public MedicoResponseDTO actualizarDisponibilidad(Long idMedico, Boolean disponible, String usuarioModificacion) {
+        Medico medico = medicoRepository.findById(idMedico)
+                .orElseThrow(() -> new ResourceNotFoundException("Médico no encontrado."));
 
-                Medico medico = cita.getMedico();
+        medico.setDisponible(disponible);
+        medico.setUsuarioModificacion(usuarioModificacion);
+        medico = medicoRepository.save(medico);
 
-                if (!cita.getEstado().equals("PENDIENTE"))
-                        throw new RuntimeException(
-                                        "Solo una cita pendiente puede ponerse en espera.");
+        return medicoMapper.toResponse(medico);
+    }
 
-                if (LocalDate.now().isBefore(cita.getFecha())) {
-                        throw new RuntimeException("La cita aún no corresponde al día de hoy.");
-                }
+    @Transactional
+    public void inactivar(Long idMedico, String usuarioModificacion) {
+        Medico medico = medicoRepository.findById(idMedico)
+                .orElseThrow(() -> new ResourceNotFoundException("Médico no encontrado."));
 
-                if (LocalDate.now().isAfter(cita.getFecha())) {
-                        throw new RuntimeException("La fecha de la cita ya pasó.");
-                }
+        medico.setEstado("INACTIVO");
+        medico.setDisponible(false);
+        medico.setUsuarioModificacion(usuarioModificacion);
+        medicoRepository.save(medico);
+    }
 
-                if (LocalTime.now().isBefore(cita.getHora())) {
-                        throw new RuntimeException("Todavía no es la hora programada para la cita.");
-                }
+    @Transactional
+    public void activar(Long idMedico, String usuarioModificacion) {
+        Medico medico = medicoRepository.findById(idMedico)
+                .orElseThrow(() -> new ResourceNotFoundException("Médico no encontrado."));
 
-                Medico medicoLogueado = medicoRepo.findByDni(dniMedico)
-                                .orElseThrow(() -> new RuntimeException("Médico no encontrado"));
+        medico.setEstado("ACTIVO");
+        medico.setUsuarioModificacion(usuarioModificacion);
+        medicoRepository.save(medico);
+    }
 
-                if (!cita.getMedico().getIdMedico().equals(medicoLogueado.getIdMedico())) {
-                        throw new RuntimeException("No tiene permisos para modificar esta cita.");
-                }
+    public MedicoResponseDTO consultarPorId(Long idMedico) {
+        Medico medico = medicoRepository.findById(idMedico)
+                .orElseThrow(() -> new ResourceNotFoundException("Médico no encontrado."));
+        return medicoMapper.toResponse(medico);
+    }
 
-                medico.setEstado("EN_ESPERA");
+    public List<MedicoResponseDTO> listarDisponiblesPorEspecialidadYSede(Long idEspecialidad, Long idSede) {
+        List<Medico> medicos;
 
-                cita.setEstado("EN_ESPERA");
-
-                medicoRepo.save(medico);
-
-                citaRepo.save(cita);
-
+        if (idEspecialidad != null && idSede != null) {
+            medicos = medicoRepository.findByEspecialidad_IdEspecialidadAndEstado(idEspecialidad, "ACTIVO").stream()
+                    .filter(m -> idSede.equals(m.getPersona().getUsuario().getIdSede()) && m.getDisponible())
+                    .toList();
+        } else if (idEspecialidad != null) {
+            medicos = medicoRepository.findByEspecialidad_IdEspecialidadAndEstado(idEspecialidad, "ACTIVO").stream()
+                    .filter(Medico::getDisponible)
+                    .toList();
+        } else if (idSede != null) {
+            medicos = medicoRepository.findByPersona_Usuario_IdSedeAndEstado(idSede, "ACTIVO").stream()
+                    .filter(Medico::getDisponible)
+                    .toList();
+        } else {
+            medicos = medicoRepository.findByEstadoAndDisponible("ACTIVO", true);
         }
 
-        @Transactional
-        @Override
-        public ConsultaResponseDTO comenzarConsulta(Integer idCita, String dniMedico) {
+        return medicos.stream().map(medicoMapper::toResponse).toList();
+    }
 
-                Cita cita = citaRepo.findById(idCita)
-                                .orElseThrow(() -> new RuntimeException("Cita no encontrada"));
-
-                if (consultaRepo.existsByCita(cita)) {
-                        throw new RuntimeException("La consulta ya fue iniciada.");
-                }
-
-                if ("CANCELADA".equals(cita.getEstado())) {
-                        throw new RuntimeException("No se puede iniciar una cita cancelada.");
-                }
-
-                if ("ATENDIDA".equals(cita.getEstado())) {
-                        throw new RuntimeException("La cita ya fue atendida.");
-                }
-
-                if (!cita.getFecha().equals(LocalDate.now())) {
-                        throw new RuntimeException("Solo se pueden iniciar consultas del día de hoy.");
-                }
-
-                Medico medicoLogueado = medicoRepo.findByDni(dniMedico)
-                                .orElseThrow(() -> new RuntimeException("Médico no encontrado"));
-
-                if (!cita.getMedico().getIdMedico().equals(medicoLogueado.getIdMedico())) {
-                        throw new RuntimeException("No tiene permisos para modificar esta cita.");
-                }
-
-                if ("EN_CONSULTA".equals(cita.getMedico().getEstado())) {
-                        throw new RuntimeException("El médico ya tiene una consulta en curso.");
-                }
-
-                Consulta consulta = new Consulta();
-
-                consulta.setCita(cita);
-
-                consulta.setPaciente(cita.getPaciente());
-
-                consulta.setMedico(cita.getMedico());
-
-                consulta.setHoraInicio(LocalDateTime.now());
-
-                consulta.setEstado("EN_CURSO");
-
-                consulta = consultaRepo.save(consulta);
-
-                cita.setEstado("EN_CURSO");
-
-                citaRepo.save(cita);
-
-                Medico medico = cita.getMedico();
-
-                medico.setEstado("EN_CONSULTA");
-
-                medicoRepo.save(medico);
-
-                return ConsultaMapper.toResponse(consulta);
-
-        }
-
-        @Transactional
-        @Override
-        public ConsultaResponseDTO terminarConsulta(Integer idConsulta, String dniMedico) {
-
-                Consulta consulta = consultaRepo.findById(idConsulta)
-                                .orElseThrow(() -> new RuntimeException("Consulta no encontrada"));
-
-                if (!"EN_CURSO".equals(consulta.getEstado())) {
-                        throw new RuntimeException("La consulta no está en curso.");
-                }
-
-                Medico medico = medicoRepo.findByDni(dniMedico)
-                                .orElseThrow(() -> new RuntimeException("Médico no encontrado"));
-
-                if (!consulta.getMedico().getIdMedico().equals(medico.getIdMedico())) {
-                        throw new RuntimeException("No tiene permisos para modificar esta consulta.");
-                }
-
-                // CONSULTA
-                consulta.setHoraFin(LocalDateTime.now());
-                consulta.setEstado("FINALIZADA");
-                consultaRepo.save(consulta);
-
-                // CITA (CLAVE)
-                Cita cita = consulta.getCita();
-                cita.setEstado("ATENDIDA");
-                citaRepo.save(cita);
-
-                // MÉDICO
-                medico.setEstado("DISPONIBLE");
-                medicoRepo.save(medico);
-
-                return ConsultaMapper.toResponse(consulta);
-        }
+    public List<MedicoResponseDTO> listarTodos() {
+        return medicoRepository.findAll().stream().map(medicoMapper::toResponse).toList();
+    }
 }

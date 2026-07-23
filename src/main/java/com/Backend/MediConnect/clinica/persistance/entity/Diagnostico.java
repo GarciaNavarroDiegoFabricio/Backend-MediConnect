@@ -1,59 +1,34 @@
 package com.Backend.MediConnect.clinica.persistance.entity;
 
 import jakarta.persistence.*;
-
-import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "diagnostico")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Diagnostico {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_diagnostico")
-    private Integer idDiagnostico;
+    private Long idDiagnostico;
 
-    @Column(name = "fecha_creacion")
-    private LocalDateTime fechaCreacion;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_atencion", nullable = false)
+    private AtencionMedica atencionMedica;
 
+    @Column(name = "codigo_cie10", length = 10)
+    private String codigoCie10;
+
+    @Column(name = "descripcion", nullable = false, length = 500)
     private String descripcion;
 
-    @OneToOne
-    @JoinColumn(name = "id_consulta")
-    private Consulta consulta;
-
-    public Consulta getConsulta() {
-        return consulta;
-    }
-
-    public void setConsulta(Consulta consulta) {
-        this.consulta = consulta;
-    }
-
-    public Diagnostico() {
-    };
-
-    public Integer getIdDiagnostico() {
-        return idDiagnostico;
-    }
-
-    public void setIdDiagnostico(Integer idDiagnostico) {
-        this.idDiagnostico = idDiagnostico;
-    }
-
-    public LocalDateTime getFechaCreacion() {
-        return fechaCreacion;
-    }
-
-    public void setFechaCreacion(LocalDateTime fechaCreacion) {
-        this.fechaCreacion = fechaCreacion;
-    }
-
-    public String getDescripcion() {
-        return descripcion;
-    }
-
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
-
+    @Column(name = "tipo", nullable = false, length = 20)
+    private String tipo;
 }

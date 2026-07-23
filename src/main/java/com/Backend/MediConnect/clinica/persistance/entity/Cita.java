@@ -1,149 +1,80 @@
 package com.Backend.MediConnect.clinica.persistance.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.List;
 
 @Entity
 @Table(name = "cita")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Cita {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_cita")
-    private Integer idCita;
+    private Long idCita;
 
-    private LocalDate fecha;
-
-    @ManyToOne
-    @JoinColumn(name = "id_medico")
-    private Medico medico;
-
-    @ManyToOne
-    @JoinColumn(name = "id_paciente")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_paciente", nullable = false)
     private Paciente paciente;
 
-    private String especialidad;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_medico", nullable = false)
+    private Medico medico;
 
-    private LocalTime hora;
+    @Column(name = "fecha_cita", nullable = false)
+    private LocalDate fechaCita;
 
-    @Column(name = "duracion_estimada")
-    private Integer duracionEstimada;
+    @Column(name = "hora_inicio", nullable = false)
+    private LocalTime horaInicio;
 
+    @Column(name = "hora_fin", nullable = false)
+    private LocalTime horaFin;
+
+    @Column(name = "modalidad", nullable = false, length = 20)
+    private String modalidad;
+
+    @Column(name = "enlace_videollamada", length = 500)
+    private String enlaceVideollamada;
+
+    @Column(name = "motivo_consulta", length = 500)
+    private String motivoConsulta;
+
+    @Column(name = "estado", nullable = false, length = 20)
     private String estado;
 
-    @OneToOne(mappedBy = "cita")
-    private Consulta consulta;
+    @Column(name = "id_pago", length = 100)
+    private String idPago;
 
-    @ManyToOne
-    @JoinColumn(name = "id_sede")
-    private Sede sede;
+    @Column(name = "fecha_creacion", nullable = false)
+    private LocalDateTime fechaCreacion;
 
-    private String tipo;
+    @Column(name = "usuario_creacion", length = 100)
+    private String usuarioCreacion;
 
-    private Integer prioridad;
+    @Column(name = "fecha_modificacion")
+    private LocalDateTime fechaModificacion;
 
-    @OneToMany(mappedBy = "cita")
-    private List<Notificacion> notificaciones;
+    @Column(name = "usuario_modificacion", length = 100)
+    private String usuarioModificacion;
 
-    public Cita() {
-    };
-
-    public Integer getIdCita() {
-        return idCita;
+    @PrePersist
+    public void prePersist() {
+        this.fechaCreacion = LocalDateTime.now();
+        if (this.estado == null) this.estado = "PENDIENTE_CONFIRMACION";
     }
 
-    public void setIdCita(Integer idCita) {
-        this.idCita = idCita;
-    }
-
-    public LocalDate getFecha() {
-        return fecha;
-    }
-
-    public void setFecha(LocalDate fecha) {
-        this.fecha = fecha;
-    }
-
-    public Medico getMedico() {
-        return medico;
-    }
-
-    public void setMedico(Medico medico) {
-        this.medico = medico;
-    }
-
-    public Paciente getPaciente() {
-        return paciente;
-    }
-
-    public void setPaciente(Paciente paciente) {
-        this.paciente = paciente;
-    }
-
-    public String getEspecialidad() {
-        return especialidad;
-    }
-
-    public void setEspecialidad(String especialidad) {
-        this.especialidad = especialidad;
-    }
-
-    public LocalTime getHora() {
-        return hora;
-    }
-
-    public void setHora(LocalTime hora) {
-        this.hora = hora;
-    }
-
-    public Integer getDuracionEstimada() {
-        return duracionEstimada;
-    }
-
-    public void setDuracionEstimada(Integer duracionEstimada) {
-        this.duracionEstimada = duracionEstimada;
-    }
-
-    public String getEstado() {
-        return estado;
-    }
-
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
-
-    public Sede getSede() {
-        return sede;
-    }
-
-    public void setSede(Sede sede) {
-        this.sede = sede;
-    }
-
-    public String getTipo() {
-        return tipo;
-    }
-
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
-    }
-
-    public Integer getPrioridad() {
-        return prioridad;
-    }
-
-    public void setPrioridad(Integer prioridad) {
-        this.prioridad = prioridad;
-    }
-
-    public List<Notificacion> getNotificaciones() {
-        return notificaciones;
-    }
-
-    public void setNotificaciones(List<Notificacion> notificaciones) {
-        this.notificaciones = notificaciones;
+    @PreUpdate
+    public void preUpdate() {
+        this.fechaModificacion = LocalDateTime.now();
     }
 }

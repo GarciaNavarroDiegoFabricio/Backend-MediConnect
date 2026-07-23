@@ -1,83 +1,41 @@
 package com.Backend.MediConnect.clinica.persistance.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "receta")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Receta {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_receta")
-    private Integer idReceta;
+    private Long idReceta;
 
-    @ManyToOne
-    @JoinColumn(name = "id_medico")
-    private Medico medico;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_atencion", referencedColumnName = "id_atencion", unique = true, nullable = false)
+    private AtencionMedica atencionMedica;
 
-    @ManyToOne
-    @JoinColumn(name = "id_paciente")
-    private Paciente paciente;
+    @Column(name = "codigo_receta", nullable = false, unique = true, length = 20)
+    private String codigoReceta;
 
-    @ManyToOne
-    @JoinColumn(name = "id_consulta")
-    private Consulta consulta;
+    @Column(name = "observaciones", length = 500)
+    private String observaciones;
 
-    @Column(name = "prescripcion", columnDefinition = "TEXT", nullable = false)
-    private String prescripcion;
+    @Column(name = "fecha_emision", nullable = false)
+    private LocalDateTime fechaEmision;
 
-    @Column(name = "fecha", nullable = false)
-    private LocalDate fecha;
-
-    public Receta() {
-    };
-
-    public Integer getIdReceta() {
-        return idReceta;
-    }
-
-    public void setIdReceta(Integer idReceta) {
-        this.idReceta = idReceta;
-    }
-
-    public Medico getMedico() {
-        return medico;
-    }
-
-    public void setMedico(Medico medico) {
-        this.medico = medico;
-    }
-
-    public Paciente getPaciente() {
-        return paciente;
-    }
-
-    public void setPaciente(Paciente paciente) {
-        this.paciente = paciente;
-    }
-
-    public Consulta getConsulta() {
-        return consulta;
-    }
-
-    public void setConsulta(Consulta consulta) {
-        this.consulta = consulta;
-    }
-
-    public String getPrescripcion() {
-        return prescripcion;
-    }
-
-    public void setPrescripcion(String prescripcion) {
-        this.prescripcion = prescripcion;
-    }
-
-    public LocalDate getFecha() {
-        return fecha;
-    }
-
-    public void setFecha(LocalDate fecha) {
-        this.fecha = fecha;
+    @PrePersist
+    public void prePersist() {
+        this.fechaEmision = LocalDateTime.now();
     }
 }

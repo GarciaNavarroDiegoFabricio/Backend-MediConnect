@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Cita cancelada</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f4f5f7; font-family:Arial, sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f5f7; padding:40px 0;">
+    <tr>
+        <td align="center">
+            <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="background-color:#ffffff; border-radius:8px; overflow:hidden;">
+                <tr>
+                    <td style="background-color:#dc2626; padding:24px; text-align:center;">
+                        <img src="https://res.cloudinary.com/gyazbgsc/image/upload/v1784714557/MediconnectLogo_heailt.png"
+                             alt="MediConnect"
+                             width="160"
+                             style="display:block; margin:0 auto; max-width:160px;" />
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:32px;">
+                        <h2 style="color:#111827; font-size:18px; margin-top:0;">Hola, {{NOMBRE_COMPLETO}}</h2>
+                        <p style="color:#374151; font-size:14px; line-height:22px;">
+                            Tu cita médica ha sido <strong>cancelada</strong>. Estos eran los detalles:
+                        </p>
+
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                               style="background-color:#fef2f2; border-radius:6px; margin:20px 0;">
+                            <tr>
+                                <td style="padding:16px;">
+                                    <p style="color:#991b1b; font-size:13px; margin:0 0 6px;"><strong>Médico:</strong> {{NOMBRE_MEDICO}}</p>
+                                    <p style="color:#991b1b; font-size:13px; margin:0 0 6px;"><strong>Especialidad:</strong> {{ESPECIALIDAD}}</p>
+                                    <p style="color:#991b1b; font-size:13px; margin:0 0 6px;"><strong>Fecha:</strong> {{FECHA_CITA}}</p>
+                                    <p style="color:#991b1b; font-size:13px; margin:0 0 6px;"><strong>Hora:</strong> {{HORA_CITA}}</p>
+                                    <p style="color:#991b1b; font-size:13px; margin:0;"><strong>Motivo:</strong> {{MOTIVO}}</p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p style="color:#374151; font-size:14px; line-height:22px;">
+                            Puedes reservar una nueva cita en el momento que lo necesites desde la plataforma.
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="background-color:#f9fafb; padding:16px; text-align:center;">
+                        <p style="color:#9ca3af; font-size:11px; margin:0;">© 2026 MediConnect. Todos los derechos reservados.</p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

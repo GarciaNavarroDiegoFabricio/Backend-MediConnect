@@ -1,101 +1,61 @@
 package com.Backend.MediConnect.clinica.persistance.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "sede")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Sede {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_sede")
-    private Integer idSede;
+    private Long idSede;
 
-    @Column(name = "nombre_sede")
-    private String nombreSede;
+    @Column(name = "nombre", nullable = false, length = 150)
+    private String nombre;
 
-    private String ubicacion;
+    @Column(name = "descripcion", length = 500)
+    private String descripcion;
 
-    private String telefono;
+    @Column(name = "foto", length = 500)
+    private String foto;
 
-    @Column(columnDefinition = "boolean default true")
-    private Boolean activo = true;
+    @Column(name = "foto_public_id", length = 255)
+    private String fotoPublicId;
 
-    @ManyToMany(mappedBy = "sedes")
-    private List<Medico> medicos;
+    @Column(name = "estado", nullable = false, length = 20)
+    private String estado;
 
-    @OneToMany(mappedBy = "sede")
-    private List<Cita> citas;
+    @Column(name = "fecha_creacion", nullable = false)
+    private LocalDateTime fechaCreacion;
 
-    @OneToMany(mappedBy = "sede")
-    private List<AdministadorLocal> adminsLocales;
+    @Column(name = "usuario_creacion", length = 100)
+    private String usuarioCreacion;
 
-    public Sede() {
+    @Column(name = "fecha_modificacion")
+    private LocalDateTime fechaModificacion;
+
+    @Column(name = "usuario_modificacion", length = 100)
+    private String usuarioModificacion;
+
+    @PrePersist
+    public void prePersist() {
+        this.fechaCreacion = LocalDateTime.now();
+        if (this.estado == null) this.estado = "ACTIVO";
     }
 
-    public Integer getIdSede() {
-        return idSede;
-    }
-
-    public void setIdSede(Integer idSede) {
-        this.idSede = idSede;
-    }
-
-    public String getNombreSede() {
-        return nombreSede;
-    }
-
-    public void setNombreSede(String nombreSede) {
-        this.nombreSede = nombreSede;
-    }
-
-    public String getUbicacion() {
-        return ubicacion;
-    }
-
-    public void setUbicacion(String ubicacion) {
-        this.ubicacion = ubicacion;
-    }
-
-    public String getTelefono() {
-        return telefono;
-    }
-
-    public void setTelefono(String telefono) {
-        this.telefono = telefono;
-    }
-
-    public Boolean getActivo() {
-        return activo;
-    }
-
-    public void setActivo(Boolean activo) {
-        this.activo = activo;
-    }
-
-    public List<Medico> getMedicos() {
-        return medicos;
-    }
-
-    public void setMedicos(List<Medico> medicos) {
-        this.medicos = medicos;
-    }
-
-    public List<Cita> getCitas() {
-        return citas;
-    }
-
-    public void setCitas(List<Cita> citas) {
-        this.citas = citas;
-    }
-
-    public List<AdministadorLocal> getAdminsLocales() {
-        return adminsLocales;
-    }
-
-    public void setAdminsLocales(List<AdministadorLocal> adminsLocales) {
-        this.adminsLocales = adminsLocales;
+    @PreUpdate
+    public void preUpdate() {
+        this.fechaModificacion = LocalDateTime.now();
     }
 }

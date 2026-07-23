@@ -1,59 +1,51 @@
 package com.Backend.MediConnect.clinica.persistance.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "especialidad")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Especialidad {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_especialidad")
-    private Integer idEspecialidad;
+    private Long idEspecialidad;
 
-    @Column(name = "nombre_especialidad")
-    private String nombreEspecialidad;
+    @Column(name = "nombre", nullable = false, unique = true, length = 150)
+    private String nombre;
 
-    @Column(columnDefinition = "boolean default true")
-    private Boolean activo = true;
+    @Column(name = "descripcion", length = 500)
+    private String descripcion;
 
-    @ManyToMany(mappedBy = "especialidades")
-    private List<Medico> medicos;
+    @Column(name = "fecha_creacion", nullable = false)
+    private LocalDateTime fechaCreacion;
 
-    public Especialidad() {
+    @Column(name = "usuario_creacion", length = 100)
+    private String usuarioCreacion;
+
+    @Column(name = "fecha_modificacion")
+    private LocalDateTime fechaModificacion;
+
+    @Column(name = "usuario_modificacion", length = 100)
+    private String usuarioModificacion;
+
+    @PrePersist
+    public void prePersist() {
+        this.fechaCreacion = LocalDateTime.now();
     }
 
-    public Integer getIdEspecialidad() {
-        return idEspecialidad;
-    }
-
-    public void setIdEspecialidad(Integer idEspecialidad) {
-        this.idEspecialidad = idEspecialidad;
-    }
-
-    public String getNombreEspecialidad() {
-        return nombreEspecialidad;
-    }
-
-    public void setNombreEspecialidad(String nombreEspecialidad) {
-        this.nombreEspecialidad = nombreEspecialidad;
-    }
-
-    public Boolean getActivo() {
-        return activo;
-    }
-
-    public void setActivo(Boolean activo) {
-        this.activo = activo;
-    }
-
-    public List<Medico> getMedicos() {
-        return medicos;
-    }
-
-    public void setMedicos(List<Medico> medicos) {
-        this.medicos = medicos;
+    @PreUpdate
+    public void preUpdate() {
+        this.fechaModificacion = LocalDateTime.now();
     }
 }

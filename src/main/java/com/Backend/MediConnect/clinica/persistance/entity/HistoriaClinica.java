@@ -1,91 +1,35 @@
 package com.Backend.MediConnect.clinica.persistance.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "historia_clinica")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class HistoriaClinica {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_historia")
-    private Integer idHistoria;
+    private Long idHistoria;
 
-    private LocalDate fecha;
-
-    @Column(name = "motivo_ingreso")
-    private String motivoIngreso;
-
-    @OneToOne
-    @JoinColumn(name = "id_paciente")
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_paciente", referencedColumnName = "id_paciente", unique = true, nullable = false)
     private Paciente paciente;
 
-    @Column(name = "historia_enfermedad_actual")
-    private String historiaEnfermedadActual;
+    @Column(name = "fecha_creacion", nullable = false)
+    private LocalDateTime fechaCreacion;
 
-    @Column(name = "enfermedades_pasadas")
-    private String enfermedadesPasadas;
-
-    public HistoriaClinica() {
-    };
-
-    public Integer getIdHistoria() {
-        return idHistoria;
-    }
-
-    public void setIdHistoria(Integer idHistoria) {
-        this.idHistoria = idHistoria;
-    }
-
-    @Column(name ="codigo_unico", unique = true)
-    private String codigoUnico;
-    
-    public LocalDate getFecha() {
-        return fecha;
-    }
-
-    public void setFecha(LocalDate fecha) {
-        this.fecha = fecha;
-    }
-
-    public String getMotivoIngreso() {
-        return motivoIngreso;
-    }
-
-    public void setMotivoIngreso(String motivoIngreso) {
-        this.motivoIngreso = motivoIngreso;
-    }
-
-    public Paciente getPaciente() {
-        return paciente;
-    }
-
-    public void setPaciente(Paciente paciente) {
-        this.paciente = paciente;
-    }
-
-    public String getHistoriaEnfermedadActual() {
-        return historiaEnfermedadActual;
-    }
-
-    public void setHistoriaEnfermedadActual(String historiaEnfermedadActual) {
-        this.historiaEnfermedadActual = historiaEnfermedadActual;
-    }
-
-    public String getEnfermedadesPasadas() {
-        return enfermedadesPasadas;
-    }
-
-    public void setEnfermedadesPasadas(String enfermedadesPasadas) {
-        this.enfermedadesPasadas = enfermedadesPasadas;
-    }
-    
-    public String getCodigoUnico() {
-        return codigoUnico;
-    }
-
-    public void setCodigoUnico(String codigoUnico) {
-        this.codigoUnico = codigoUnico;
+    @PrePersist
+    public void prePersist() {
+        this.fechaCreacion = LocalDateTime.now();
     }
 }

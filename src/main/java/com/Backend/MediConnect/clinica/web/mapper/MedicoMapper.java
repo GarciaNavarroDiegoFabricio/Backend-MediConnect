@@ -1,42 +1,40 @@
 package com.Backend.MediConnect.clinica.web.mapper;
 
-import java.util.stream.Collectors;
-
-import com.Backend.MediConnect.clinica.domain.dto.MedicoResponseDTO;
-import com.Backend.MediConnect.clinica.persistance.entity.Especialidad;
+import com.Backend.MediConnect.clinica.domain.dto.response.MedicoResponseDTO;
+import com.Backend.MediConnect.clinica.domain.repository.ISedeRepository;
 import com.Backend.MediConnect.clinica.persistance.entity.Medico;
 import com.Backend.MediConnect.clinica.persistance.entity.Sede;
+import org.springframework.stereotype.Component;
 
+@Component
 public class MedicoMapper {
 
-    public static MedicoResponseDTO toResponse(Medico medico) {
-        if (medico == null) return null;
+    private final ISedeRepository sedeRepository;
 
-        MedicoResponseDTO dto = new MedicoResponseDTO();
-        dto.setIdMedico(medico.getIdMedico());
-        dto.setPrimerNombre(medico.getPrimerNombre());
-        dto.setSegundoNombre(medico.getSegundoNombre());
-        dto.setPrimerApellido(medico.getPrimerApellido());
-        dto.setSegundoApellido(medico.getSegundoApellido());
-        dto.setDni(medico.getDni());
-        dto.setEdad(medico.getEdad());
-        dto.setDisponible(medico.getDisponible());
-        
-        // RF: Estado para Activar/Desactivar/Suspender
-        dto.setEstado(medico.getEstado()); 
+    public MedicoMapper(ISedeRepository sedeRepository) {
+        this.sedeRepository = sedeRepository;
+    }
 
-        if (medico.getEspecialidades() != null) {
-            dto.setEspecialidades(medico.getEspecialidades().stream()
-                    .map(Especialidad::getNombreEspecialidad)
-                    .collect(Collectors.toList()));
-        }
+    public MedicoResponseDTO toResponse(Medico medico) {
+        Long idSede = medico.getPersona().getUsuario().getIdSede();
+        Sede sede = idSede != null ? sedeRepository.findById(idSede).orElse(null) : null;
 
-        if (medico.getSedes() != null) {
-            dto.setSedes(medico.getSedes().stream()
-                    .map(Sede::getNombreSede)
-                    .collect(Collectors.toList()));
-        }
-
-        return dto;
+        return MedicoResponseDTO.builder()
+                .idMedico(medico.getIdMedico())
+                .idUsuario(medico.getPersona().getUsuario().getIdUsuario())
+                .dni(medico.getPersona().getDni())
+                .nombres(medico.getPersona().getNombres())
+                .apellidoPaterno(medico.getPersona().getApellidoPaterno())
+                .apellidoMaterno(medico.getPersona().getApellidoMaterno())
+                .correo(medico.getPersona().getUsuario().getCorreo())
+                .fotoPerfil(medico.getPersona().getFotoPerfil())
+                .numeroColegiatura(medico.getNumeroColegiatura())
+                .idEspecialidad(medico.getEspecialidad().getIdEspecialidad())
+                .nombreEspecialidad(medico.getEspecialidad().getNombre())
+                .idSede(idSede)
+                .nombreSede(sede != null ? sede.getNombre() : null)
+                .disponible(medico.getDisponible())
+                .estado(medico.getEstado())
+                .build();
     }
 }

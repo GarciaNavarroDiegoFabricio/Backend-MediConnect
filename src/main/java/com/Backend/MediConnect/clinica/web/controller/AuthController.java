@@ -1,64 +1,75 @@
 package com.Backend.MediConnect.clinica.web.controller;
 
+import com.Backend.MediConnect.clinica.domain.dto.request.*;
+import com.Backend.MediConnect.clinica.domain.dto.response.*;
+import com.Backend.MediConnect.clinica.domain.services.AuthService;
+import com.Backend.MediConnect.clinica.domain.services.PerfilService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import com.Backend.MediConnect.clinica.domain.dto.*;
-import com.Backend.MediConnect.clinica.domain.interfaces.IUsuarioService;
-
-import lombok.RequiredArgsConstructor;
-
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/auth")
-@RequiredArgsConstructor
+@Tag(name = "Autenticación", description = "Login, registro, reset y datos de sesión")
+@SecurityRequirement(name = "bearerAuth")
 public class AuthController {
 
-    private final IUsuarioService usuarioService;
+    private final AuthService authService;
+    private final PerfilService perfilService;
 
+    public AuthController(AuthService authService, PerfilService perfilService) {
+        this.authService = authService;
+        this.perfilService = perfilService;
+    }
+
+    @Operation(summary = "Iniciar sesión con DNI y contraseña (RF-1, RF-4)")
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
-        return ResponseEntity.ok(usuarioService.login(request));
+    public ResponseEntity<ApiResponse<LoginResponseDTO>> login(@Valid @RequestBody LoginRequestDTO request) {
+        LoginResponseDTO response = authService.login(request);
+        return ResponseEntity.ok(ApiResponse.success("Inicio de sesión exitoso.", response));
     }
 
-    @PostMapping("/registro/paciente")
-    public ResponseEntity<AuthResponse> registrarPaciente(@RequestBody RegistroPacienteDTO dto) {
-        return ResponseEntity.ok(usuarioService.registrarPaciente(dto));
+    @Operation(summary = "Registro directo de paciente (autocompleta con RENIEC)")
+    @PostMapping("/registro-paciente")
+    public ResponseEntity<ApiResponse<UsuarioResponseDTO>> registroPaciente(
+            @Valid @RequestBody RegistroPacienteRequestDTO request) {
+        UsuarioResponseDTO creado = authService.registrarPaciente(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Paciente registrado correctamente.", creado));
     }
 
-    @PostMapping("/registro/admin-local")
-    public ResponseEntity<AuthResponse> registrarAdminLocal(@RequestBody RegistroAdminLocalDTO dto) {
-        return ResponseEntity.ok(usuarioService.registrarAdminLocal(dto));
+    @Operation(summary = "Solicitar restablecimiento de contraseña por correo")
+    @PostMapping("/reset-password/solicitar")
+    public ResponseEntity<ApiResponse<Object>> solicitarReset(@Valid @RequestBody SolicitarResetRequestDTO request) {
+        authService.solicitarReset(request);
+        return ResponseEntity.ok(ApiResponse.success("Se envió un correo con las instrucciones.", null));
     }
 
-    @PostMapping("/registro/admin-total")
-    public ResponseEntity<AuthResponse> registrarAdminTotal(@RequestBody RegistroAdminTotalDTO dto) {
-        return ResponseEntity.ok(usuarioService.registrarAdminTotal(dto));
+    @Operation(summary = "Confirmar restablecimiento de contraseña con token")
+    @PostMapping("/reset-password/confirmar")
+    public ResponseEntity<ApiResponse<Object>> confirmarReset(@Valid @RequestBody ConfirmarResetRequestDTO request) {
+        authService.confirmarReset(request);
+        return ResponseEntity.ok(ApiResponse.success("Contraseña restablecida correctamente.", null));
     }
 
-    @PostMapping("/registro/medico")
-    public ResponseEntity<AuthResponse> registrarMedico(@RequestBody RegistroMedicoDTO dto, Authentication auth) {
-        String dni = auth.getName();
-        String rol = auth.getAuthorities().iterator().next().getAuthority();
-        return ResponseEntity.ok(usuarioService.registrarMedico(dto, dni, rol));
+    @Operation(summary = "Renovar access token mediante refresh token")
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<LoginResponseDTO>> refresh(@Valid @RequestBody RefreshTokenRequestDTO request) {
+        LoginResponseDTO response = authService.refrescarToken(request.getRefreshToken());
+        return ResponseEntity.ok(ApiResponse.success("Token renovado correctamente.", response));
     }
 
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Obtener DNI, nombre completo y rol del usuario autenticado")
     @GetMapping("/me")
-    public ResponseEntity<UsuarioPerfilDTO> obtenerPerfil(Authentication auth) {
-        String dni = auth.getName();
-        String rol = auth.getAuthorities().iterator().next().getAuthority().replace("ROLE_", "");
-        return ResponseEntity.ok(usuarioService.obtenerPerfil(dni, rol));
-    }
-
-    @GetMapping("/medicos")
-    public ResponseEntity<List<UsuarioPerfilDTO>> listarMedicos() {
-        return ResponseEntity.ok(usuarioService.listarMedicos());
-    }
-
-    @GetMapping("/pacientes")
-    public ResponseEntity<List<UsuarioPerfilDTO>> listarPacientes() {
-        return ResponseEntity.ok(usuarioService.listarPacientes());
+    public ResponseEntity<ApiResponse<MeResponseDTO>> me(Authentication authentication) {
+        Long idUsuario = (Long) authentication.getPrincipal();
+        return ResponseEntity.ok(ApiResponse.success(perfilService.obtenerMe(idUsuario)));
     }
 }

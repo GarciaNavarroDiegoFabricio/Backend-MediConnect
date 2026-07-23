@@ -1,91 +1,101 @@
 package com.Backend.MediConnect.clinica.web.controller;
 
+import com.Backend.MediConnect.clinica.domain.dto.request.MedicoComplementoRequestDTO;
+import com.Backend.MediConnect.clinica.domain.dto.response.ApiResponse;
+import com.Backend.MediConnect.clinica.domain.dto.response.MedicoResponseDTO;
+import com.Backend.MediConnect.clinica.domain.services.MedicoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import com.Backend.MediConnect.clinica.domain.dto.CitaResponseDTO;
-import com.Backend.MediConnect.clinica.domain.dto.ConsultaResponseDTO;
-import com.Backend.MediConnect.clinica.domain.dto.PacienteBusquedaDTO;
-import com.Backend.MediConnect.clinica.domain.dto.RecetaDTO;
-import com.Backend.MediConnect.clinica.domain.dto.RecetaResponseDTO;
-import com.Backend.MediConnect.clinica.domain.dto.ReporteResponseDTO;
-import com.Backend.MediConnect.clinica.domain.interfaces.IMedicoService;
-
 import java.util.List;
 
-@PreAuthorize("hasRole('MEDICO')")
 @RestController
-@RequestMapping("/api/medico")
+@RequestMapping("/api/medicos")
+@Tag(name = "Médicos", description = "Datos profesionales, especialidad y sede")
+@SecurityRequirement(name = "bearerAuth")
 public class MedicoController {
 
-    private final IMedicoService medicoService;
+    private final MedicoService medicoService;
 
-    public MedicoController(IMedicoService medicoService) {
+    public MedicoController(MedicoService medicoService) {
         this.medicoService = medicoService;
     }
 
-    @PutMapping("/disponibilidad")
-    public ResponseEntity<Void> cambiarDisponibilidad(@RequestParam Boolean disponible, Authentication auth) {
-        medicoService.cambiarDisponibilidad(auth.getName(), disponible);
-        return ResponseEntity.noContent().build();
+    @PreAuthorize("hasRole('ADMINISTRADOR_TOTAL')")
+    @Operation(summary = "Completar datos profesionales de un médico ya registrado en /api/usuarios")
+    @PostMapping("/{idUsuario}/completar-datos")
+    public ResponseEntity<ApiResponse<MedicoResponseDTO>> completarDatos(
+            @PathVariable Long idUsuario, @Valid @RequestBody MedicoComplementoRequestDTO request, Authentication authentication) {
+        MedicoResponseDTO completado = medicoService.completarDatos(idUsuario, request, authentication.getName());
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Datos profesionales completados correctamente.", completado));
     }
 
-    @PostMapping("/reporte")
-    public ResponseEntity<ReporteResponseDTO> generarReporte(Authentication auth) {
-        return ResponseEntity.ok(medicoService.generarReporteConsulta(auth.getName()));
+    @PreAuthorize("hasRole('ADMINISTRADOR_TOTAL')")
+    @Operation(summary = "Actualizar especialidad y/o sede de un médico")
+    @PatchMapping("/{id}/especialidad-sede")
+    public ResponseEntity<ApiResponse<MedicoResponseDTO>> actualizarEspecialidadYSede(
+            @PathVariable Long id,
+            @RequestParam(required = false) Long idEspecialidad,
+            @RequestParam(required = false) Long idSede,
+            Authentication authentication) {
+        MedicoResponseDTO actualizado = medicoService.actualizarSedeYEspecialidad(
+                id, idEspecialidad, idSede, authentication.getName());
+        return ResponseEntity.ok(ApiResponse.success("Datos actualizados correctamente.", actualizado));
     }
 
-    @PostMapping("/receta")
-    public ResponseEntity<RecetaResponseDTO> crearReceta(@RequestBody RecetaDTO dto, Authentication auth) {
-        return ResponseEntity.ok(medicoService.crearReceta(auth.getName(), dto));
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_LOCAL', 'MEDICO')")
+    @Operation(summary = "Actualizar disponibilidad del médico")
+    @PatchMapping("/{id}/disponibilidad")
+    public ResponseEntity<ApiResponse<MedicoResponseDTO>> actualizarDisponibilidad(
+            @PathVariable Long id, @RequestParam Boolean disponible, Authentication authentication) {
+        MedicoResponseDTO actualizado = medicoService.actualizarDisponibilidad(id, disponible, authentication.getName());
+        return ResponseEntity.ok(ApiResponse.success("Disponibilidad actualizada correctamente.", actualizado));
     }
 
-    @GetMapping("/reservas")
-    public ResponseEntity<List<CitaResponseDTO>> consultarReservas(Authentication auth) {
-        return ResponseEntity.ok(medicoService.consultarReservas(auth.getName()));
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_LOCAL')")
+    @Operation(summary = "Inactivar un médico")
+    @PatchMapping("/{id}/inactivar")
+    public ResponseEntity<ApiResponse<Object>> inactivar(@PathVariable Long id, Authentication authentication) {
+        medicoService.inactivar(id, authentication.getName());
+        return ResponseEntity.ok(ApiResponse.success("Médico inactivado correctamente.", null));
     }
 
-    @GetMapping("/pacientes/buscar")
-    public ResponseEntity<List<PacienteBusquedaDTO>> buscarPacientes(@RequestParam String termino) {
-        List<PacienteBusquedaDTO> resultados = medicoService.buscarPacientes(termino);
-        return ResponseEntity.ok(resultados);
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_LOCAL')")
+    @Operation(summary = "Activar un médico")
+    @PatchMapping("/{id}/activar")
+    public ResponseEntity<ApiResponse<Object>> activar(@PathVariable Long id, Authentication authentication) {
+        medicoService.activar(id, authentication.getName());
+        return ResponseEntity.ok(ApiResponse.success("Médico activado correctamente.", null));
     }
 
-    // Permite al medico colocar que está en horario de una cita programada que ya
-    // debería haber empezado
-    // pero está esperando al paciente a que llegue. Esto indica que no está
-    // disponible ahora mismo.
-    @PatchMapping("/citas/{id}/en-espera")
-    public ResponseEntity<Void> ponerEnEspera(
-            @PathVariable Integer id,
-            Authentication auth) {
-
-        medicoService.ponerEnEspera(id, auth.getName());
-
-        return ResponseEntity.ok().build();
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_LOCAL', 'RECEPCIONISTA')")
+    @Operation(summary = "Consultar un médico por ID")
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<MedicoResponseDTO>> consultar(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(medicoService.consultarPorId(id)));
     }
 
-    // Esto indica que el medico ha comenzado la consulta con el paciente
-    @PostMapping("/consultas/comenzar/{idCita}")
-    public ResponseEntity<ConsultaResponseDTO> comenzarConsulta(
-            @PathVariable Integer idCita, Authentication auth) {
-
-        return ResponseEntity.ok(
-                medicoService.comenzarConsulta(idCita, auth.getName()));
-
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_LOCAL', 'RECEPCIONISTA')")
+    @Operation(summary = "Listar todos los médicos")
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<MedicoResponseDTO>>> listarTodos() {
+        return ResponseEntity.ok(ApiResponse.success(medicoService.listarTodos()));
     }
 
-    // Esto indica que la consulta ha terminado y se guardan los datos de la
-    // consulta, el diagnostico y la fecha de finalizacion de la consulta
-    @PatchMapping("/consultas/{id}/terminar")
-    public ResponseEntity<ConsultaResponseDTO> terminarConsulta(
-            @PathVariable Integer id, Authentication auth) {
-
-        return ResponseEntity.ok(
-                medicoService.terminarConsulta(id, auth.getName()));
-
+    @Operation(summary = "Buscar médicos disponibles por especialidad y/o sede (público)")
+    @GetMapping("/disponibles")
+    public ResponseEntity<ApiResponse<List<MedicoResponseDTO>>> buscarDisponibles(
+            @RequestParam(required = false) Long idEspecialidad,
+            @RequestParam(required = false) Long idSede) {
+        return ResponseEntity.ok(ApiResponse.success(
+                medicoService.listarDisponiblesPorEspecialidadYSede(idEspecialidad, idSede)));
     }
-
 }

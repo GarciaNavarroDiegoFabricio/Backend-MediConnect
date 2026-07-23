@@ -1,22 +1,17 @@
 package com.Backend.MediConnect.clinica.domain.interfaces;
 
-import com.Backend.MediConnect.clinica.domain.dto.*;
+import com.Backend.MediConnect.clinica.domain.dto.request.UsuarioRequestDTO;
+import com.Backend.MediConnect.clinica.domain.dto.request.UsuarioUpdateRequestDTO;
+import com.Backend.MediConnect.clinica.domain.dto.response.UsuarioResponseDTO;
 
 import java.util.List;
 
 public interface IUsuarioService {
-    AuthResponse login(AuthRequest request);
-
-    AuthResponse registrarPaciente(RegistroPacienteDTO dto);
-
-    AuthResponse registrarAdminLocal(RegistroAdminLocalDTO dto);
-
-    AuthResponse registrarAdminTotal(RegistroAdminTotalDTO dto);
-
-    AuthResponse registrarMedico(RegistroMedicoDTO dto, String dniRegistrador, String rolRegistrador);
-
-    UsuarioPerfilDTO obtenerPerfil(String dni, String rol);
-
-    List<UsuarioPerfilDTO> listarMedicos();
-    List<UsuarioPerfilDTO> listarPacientes();
+    UsuarioResponseDTO crearUsuario(UsuarioRequestDTO request, String usuarioCreacion);
+    UsuarioResponseDTO actualizarUsuario(Long idUsuario, UsuarioUpdateRequestDTO request, String usuarioModificacion);
+    UsuarioResponseDTO consultarPorId(Long idUsuario);
+    List<UsuarioResponseDTO> listarUsuarios();
+    void bloquearUsuario(Long idUsuario);
+    void inactivarUsuario(Long idUsuario);
+    void eliminarUsuario(Long idUsuario);
 }

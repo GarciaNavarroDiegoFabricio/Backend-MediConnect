@@ -1,82 +1,87 @@
 package com.Backend.MediConnect.clinica.domain.services;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
+import com.Backend.MediConnect.clinica.domain.dto.request.EspecialidadRequestDTO;
+import com.Backend.MediConnect.clinica.domain.dto.response.EspecialidadPublicaResponseDTO;
+import com.Backend.MediConnect.clinica.domain.dto.response.EspecialidadResponseDTO;
+import com.Backend.MediConnect.clinica.domain.exception.BusinessException;
+import com.Backend.MediConnect.clinica.domain.exception.ResourceNotFoundException;
+import com.Backend.MediConnect.clinica.domain.repository.IEspecialidadRepository;
+import com.Backend.MediConnect.clinica.persistance.entity.Especialidad;
+import com.Backend.MediConnect.clinica.web.mapper.EspecialidadMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.Backend.MediConnect.clinica.domain.dto.EspecialidadRequestDTO;
-import com.Backend.MediConnect.clinica.domain.dto.EspecialidadResponseDTO;
-import com.Backend.MediConnect.clinica.domain.interfaces.IEspecialidadService;
-import com.Backend.MediConnect.clinica.domain.repository.EspecialidadRepository;
-import com.Backend.MediConnect.clinica.persistance.entity.Especialidad;
-import com.Backend.MediConnect.clinica.web.mapper.MantenimientoMapper;
+import java.util.List;
 
 @Service
-public class EspecialidadService implements IEspecialidadService {
+public class EspecialidadService {
 
-    private final EspecialidadRepository especialidadRepo;
+    private final IEspecialidadRepository especialidadRepository;
+    private final EspecialidadMapper especialidadMapper;
 
-    public EspecialidadService(EspecialidadRepository especialidadRepo) {
-        this.especialidadRepo = especialidadRepo;
+    public EspecialidadService(IEspecialidadRepository especialidadRepository, EspecialidadMapper especialidadMapper) {
+        this.especialidadRepository = especialidadRepository;
+        this.especialidadMapper = especialidadMapper;
     }
 
-    @Override
     @Transactional
-    public EspecialidadResponseDTO registrarEspecialidad(EspecialidadRequestDTO dto) {
-        if (especialidadRepo.existsByNombreEspecialidad(dto.getNombreEspecialidad())) {
-            throw new RuntimeException("Ya existe una especialidad con ese nombre");
+    public EspecialidadResponseDTO crear(EspecialidadRequestDTO request, String usuarioCreacion) {
+        if (especialidadRepository.existsByNombreIgnoreCase(request.getNombre())) {
+            throw new BusinessException("Ya existe una especialidad con ese nombre.");
         }
 
-        Especialidad especialidad = new Especialidad();
-        especialidad.setNombreEspecialidad(dto.getNombreEspecialidad());
-        especialidad.setActivo(true);
+        Especialidad especialidad = Especialidad.builder()
+                .nombre(request.getNombre())
+                .descripcion(request.getDescripcion())
+                .usuarioCreacion(usuarioCreacion)
+                .build();
 
-        return MantenimientoMapper.toEspecialidadResponse(especialidadRepo.save(especialidad));
+        especialidad = especialidadRepository.save(especialidad);
+        return especialidadMapper.toResponse(especialidad);
     }
 
-    @Override
     @Transactional
-    public EspecialidadResponseDTO actualizarEspecialidad(Integer id, EspecialidadRequestDTO dto) {
-        Especialidad especialidad = especialidadRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Especialidad no encontrada"));
+    public EspecialidadResponseDTO actualizar(Long idEspecialidad, EspecialidadRequestDTO request, String usuarioModificacion) {
+        Especialidad especialidad = especialidadRepository.findById(idEspecialidad)
+                .orElseThrow(() -> new ResourceNotFoundException("Especialidad no encontrada."));
 
-        especialidad.setNombreEspecialidad(dto.getNombreEspecialidad());
+        if (request.getNombre() != null) especialidad.setNombre(request.getNombre());
+        if (request.getDescripcion() != null) especialidad.setDescripcion(request.getDescripcion());
+        especialidad.setUsuarioModificacion(usuarioModificacion);
 
-        return MantenimientoMapper.toEspecialidadResponse(especialidadRepo.save(especialidad));
+        especialidad = especialidadRepository.save(especialidad);
+        return especialidadMapper.toResponse(especialidad);
     }
 
-    @Override
     @Transactional
-    public void inactivarEspecialidad(Integer id) {
-        Especialidad especialidad = especialidadRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Especialidad no encontrada"));
-        especialidad.setActivo(false);
-        especialidadRepo.save(especialidad);
+    public void eliminar(Long idEspecialidad) {
+        Especialidad especialidad = especialidadRepository.findById(idEspecialidad)
+                .orElseThrow(() -> new ResourceNotFoundException("Especialidad no encontrada."));
+
+        especialidadRepository.delete(especialidad);
     }
 
-    @Override
-    @Transactional
-    public void activarEspecialidad(Integer id) {
-        Especialidad especialidad = especialidadRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Especialidad no encontrada"));
-        especialidad.setActivo(true);
-        especialidadRepo.save(especialidad);
+    public EspecialidadResponseDTO consultarPorId(Long idEspecialidad) {
+        Especialidad especialidad = especialidadRepository.findById(idEspecialidad)
+                .orElseThrow(() -> new ResourceNotFoundException("Especialidad no encontrada."));
+        return especialidadMapper.toResponse(especialidad);
     }
 
-    @Override
-    public List<EspecialidadResponseDTO> listarEspecialidades() {
-        return especialidadRepo.findAll()
-                .stream()
-                .map(MantenimientoMapper::toEspecialidadResponse)
-                .collect(Collectors.toList());
+    public List<EspecialidadResponseDTO> listar() {
+        return especialidadRepository.findAll().stream()
+                .map(especialidadMapper::toResponse)
+                .toList();
     }
 
-    @Override
-    public EspecialidadResponseDTO obtenerEspecialidad(Integer id) {
-        Especialidad especialidad = especialidadRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Especialidad no encontrada"));
-        return MantenimientoMapper.toEspecialidadResponse(especialidad);
+    public EspecialidadPublicaResponseDTO consultarPorIdPublico(Long idEspecialidad) {
+        Especialidad especialidad = especialidadRepository.findById(idEspecialidad)
+                .orElseThrow(() -> new ResourceNotFoundException("Especialidad no encontrada."));
+        return especialidadMapper.toPublicaResponse(especialidad);
+    }
+
+    public List<EspecialidadPublicaResponseDTO> listarPublico() {
+        return especialidadRepository.findAll().stream()
+                .map(especialidadMapper::toPublicaResponse)
+                .toList();
     }
 }
