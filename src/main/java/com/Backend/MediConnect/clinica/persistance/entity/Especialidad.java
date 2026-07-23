@@ -27,6 +27,12 @@ public class Especialidad {
     @Column(name = "descripcion", length = 500)
     private String descripcion;
 
+    @Column(name = "foto", length = 500)
+    private String foto;
+
+    @Column(name = "foto_public_id", length = 255)
+    private String fotoPublicId;
+
     @Column(name = "fecha_creacion", nullable = false)
     private LocalDateTime fechaCreacion;
 

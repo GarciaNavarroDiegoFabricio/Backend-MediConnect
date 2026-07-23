@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -46,6 +47,23 @@ public class EspecialidadController {
             @PathVariable Long id, @Valid @RequestBody EspecialidadRequestDTO request, Authentication authentication) {
         EspecialidadResponseDTO actualizada = especialidadService.actualizar(id, request, authentication.getName());
         return ResponseEntity.ok(ApiResponse.success("Especialidad actualizada correctamente.", actualizada));
+    }
+
+    @PreAuthorize("hasRole('ADMINISTRADOR_TOTAL')")
+    @Operation(summary = "Subir o actualizar la foto de una especialidad")
+    @PutMapping(value = "/{id}/foto", consumes = "multipart/form-data")
+    public ResponseEntity<ApiResponse<String>> actualizarFoto(
+            @PathVariable Long id, @RequestParam("archivo") MultipartFile archivo, Authentication authentication) {
+        String url = especialidadService.actualizarFoto(id, archivo, authentication.getName());
+        return ResponseEntity.ok(ApiResponse.success("Foto de la especialidad actualizada correctamente.", url));
+    }
+
+    @PreAuthorize("hasRole('ADMINISTRADOR_TOTAL')")
+    @Operation(summary = "Eliminar la foto de una especialidad")
+    @DeleteMapping("/{id}/foto")
+    public ResponseEntity<ApiResponse<Object>> eliminarFoto(@PathVariable Long id, Authentication authentication) {
+        especialidadService.eliminarFoto(id, authentication.getName());
+        return ResponseEntity.ok(ApiResponse.success("Foto de la especialidad eliminada correctamente.", null));
     }
 
     @PreAuthorize("hasRole('ADMINISTRADOR_TOTAL')")

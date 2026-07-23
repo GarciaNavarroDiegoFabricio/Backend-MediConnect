@@ -55,4 +55,18 @@ public class PacienteController {
     public ResponseEntity<ApiResponse<List<PacienteResponseDTO>>> buscar(@RequestParam String termino) {
         return ResponseEntity.ok(ApiResponse.success(pacienteService.buscar(termino)));
     }
+
+    @PreAuthorize("hasRole('PACIENTE')")
+    @Operation(summary = "Obtener mis datos de contacto")
+    @GetMapping("/mi-contacto")
+    public ResponseEntity<ApiResponse<PacienteResponseDTO>> obtenerMiContacto(Authentication authentication) {
+
+        Long idUsuario = (Long) authentication.getPrincipal();
+
+        PacienteResponseDTO paciente = pacienteService.consultarPorIdUsuario(idUsuario);
+
+        return ResponseEntity.ok(
+                ApiResponse.success("Datos de contacto obtenidos correctamente.", paciente)
+        );
+    }
 }

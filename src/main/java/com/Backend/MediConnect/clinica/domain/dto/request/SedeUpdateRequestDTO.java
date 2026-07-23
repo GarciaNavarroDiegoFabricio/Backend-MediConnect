@@ -17,4 +17,7 @@ public class SedeUpdateRequestDTO {
 
     @Size(max = 500, message = "La descripción no puede superar los 500 caracteres.")
     private String descripcion;
+
+    @Size(max = 300, message = "La dirección no puede superar los 300 caracteres.")
+    private String direccion;
 }

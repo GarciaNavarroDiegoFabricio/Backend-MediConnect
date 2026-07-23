@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class PacienteContactoUpdateDTO {
     private String telefono;
-    private String direccion;
     private String contactoEmergenciaNombre;
     private String contactoEmergenciaTelefono;
     private String contactoEmergenciaParentesco;

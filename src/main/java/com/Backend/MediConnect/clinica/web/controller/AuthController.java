@@ -37,9 +37,9 @@ public class AuthController {
 
     @Operation(summary = "Registro directo de paciente (autocompleta con RENIEC)")
     @PostMapping("/registro-paciente")
-    public ResponseEntity<ApiResponse<UsuarioResponseDTO>> registroPaciente(
+    public ResponseEntity<ApiResponse<RegistroPacienteResponseDTO>> registroPaciente(
             @Valid @RequestBody RegistroPacienteRequestDTO request) {
-        UsuarioResponseDTO creado = authService.registrarPaciente(request);
+        RegistroPacienteResponseDTO creado = authService.registrarPaciente(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Paciente registrado correctamente.", creado));
     }

@@ -15,6 +15,7 @@ public class SedeResponseDTO {
     private Long idSede;
     private String nombre;
     private String descripcion;
+    private String direccion;
     private String foto;
     private String estado;
     private LocalDateTime fechaCreacion;

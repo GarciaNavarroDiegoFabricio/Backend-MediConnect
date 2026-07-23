@@ -164,4 +164,12 @@ public class MedicoService {
     public List<MedicoResponseDTO> listarTodos() {
         return medicoRepository.findAll().stream().map(medicoMapper::toResponse).toList();
     }
+
+    public MedicoResponseDTO consultarPorIdUsuario(Long idUsuario) {
+
+        Medico medico = medicoRepository.findByPersona_Usuario_IdUsuario(idUsuario)
+                .orElseThrow(() -> new ResourceNotFoundException("Datos del médico no encontrados."));
+
+        return medicoMapper.toResponse(medico);
+    }
 }

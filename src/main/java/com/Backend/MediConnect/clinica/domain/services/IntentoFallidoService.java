@@ -46,7 +46,7 @@ public class IntentoFallidoService {
             String nombreCompleto = String.join(" ",
                     safe(nombres), safe(apellidoPaterno), safe(apellidoMaterno)).trim();
 
-            String enlace = frontendUrl + "restablecer-password?token=" + token;
+            String enlace = frontendUrl + "portal-web?token=" + token;
             emailService.enviarCorreoBloqueo(usuario.getCorreo(), nombreCompleto, enlace);
         }
 

@@ -13,6 +13,7 @@ public class SedeMapper {
                 .idSede(sede.getIdSede())
                 .nombre(sede.getNombre())
                 .descripcion(sede.getDescripcion())
+                .direccion(sede.getDireccion())
                 .foto(sede.getFoto())
                 .estado(sede.getEstado())
                 .fechaCreacion(sede.getFechaCreacion())
@@ -27,6 +28,7 @@ public class SedeMapper {
                 .idSede(sede.getIdSede())
                 .nombre(sede.getNombre())
                 .descripcion(sede.getDescripcion())
+                .direccion(sede.getDireccion())
                 .foto(sede.getFoto())
                 .estado(sede.getEstado())
                 .build();

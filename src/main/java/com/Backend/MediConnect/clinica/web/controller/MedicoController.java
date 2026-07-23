@@ -28,7 +28,7 @@ public class MedicoController {
         this.medicoService = medicoService;
     }
 
-    @PreAuthorize("hasRole('ADMINISTRADOR_TOTAL')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_LOCAL')")
     @Operation(summary = "Completar datos profesionales de un médico ya registrado en /api/usuarios")
     @PostMapping("/{idUsuario}/completar-datos")
     public ResponseEntity<ApiResponse<MedicoResponseDTO>> completarDatos(
@@ -38,7 +38,7 @@ public class MedicoController {
                 .body(ApiResponse.success("Datos profesionales completados correctamente.", completado));
     }
 
-    @PreAuthorize("hasRole('ADMINISTRADOR_TOTAL')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_LOCAL')")
     @Operation(summary = "Actualizar especialidad y/o sede de un médico")
     @PatchMapping("/{id}/especialidad-sede")
     public ResponseEntity<ApiResponse<MedicoResponseDTO>> actualizarEspecialidadYSede(
@@ -97,5 +97,19 @@ public class MedicoController {
             @RequestParam(required = false) Long idSede) {
         return ResponseEntity.ok(ApiResponse.success(
                 medicoService.listarDisponiblesPorEspecialidadYSede(idEspecialidad, idSede)));
+    }
+
+    @PreAuthorize("hasRole('MEDICO')")
+    @Operation(summary = "Obtener mi información como médico")
+    @GetMapping("/mi-perfil")
+    public ResponseEntity<ApiResponse<MedicoResponseDTO>> obtenerMiPerfil(Authentication authentication) {
+
+        Long idUsuario = (Long) authentication.getPrincipal();
+
+        MedicoResponseDTO medico = medicoService.consultarPorIdUsuario(idUsuario);
+
+        return ResponseEntity.ok(
+                ApiResponse.success("Información del médico obtenida correctamente.", medico)
+        );
     }
 }

@@ -27,6 +27,9 @@ public class Sede {
     @Column(name = "descripcion", length = 500)
     private String descripcion;
 
+    @Column(name = "direccion", length = 300)
+    private String direccion;
+
     @Column(name = "foto", length = 500)
     private String foto;
 

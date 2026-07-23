@@ -15,6 +15,7 @@ public class EspecialidadResponseDTO {
     private Long idEspecialidad;
     private String nombre;
     private String descripcion;
+    private String foto;
     private LocalDateTime fechaCreacion;
     private String usuarioCreacion;
     private LocalDateTime fechaModificacion;

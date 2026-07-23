@@ -46,6 +46,7 @@ public class SedeService {
         Sede sede = Sede.builder()
                 .nombre(request.getNombre())
                 .descripcion(request.getDescripcion())
+                .direccion(request.getDireccion())
                 .estado("ACTIVO")
                 .usuarioCreacion(usuarioCreacion)
                 .build();
@@ -61,6 +62,7 @@ public class SedeService {
 
         if (request.getNombre() != null) sede.setNombre(request.getNombre());
         if (request.getDescripcion() != null) sede.setDescripcion(request.getDescripcion());
+        if (request.getDireccion() != null) sede.setDireccion(request.getDireccion());
         sede.setUsuarioModificacion(usuarioModificacion);
 
         sede = sedeRepository.save(sede);

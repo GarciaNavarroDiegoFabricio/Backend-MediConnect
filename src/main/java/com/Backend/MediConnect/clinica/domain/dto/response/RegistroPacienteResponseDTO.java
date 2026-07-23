@@ -9,9 +9,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class EspecialidadPublicaResponseDTO {
-    private Long idEspecialidad;
-    private String nombre;
-    private String descripcion;
-    private String foto;
+public class RegistroPacienteResponseDTO {
+    private Long idUsuario;
+    private String nombres;
+    private String apellidoPaterno;
+    private String apellidoMaterno;
 }

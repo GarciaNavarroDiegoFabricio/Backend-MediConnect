@@ -5,6 +5,7 @@ import com.Backend.MediConnect.clinica.domain.dto.request.LoginRequestDTO;
 import com.Backend.MediConnect.clinica.domain.dto.request.RegistroPacienteRequestDTO;
 import com.Backend.MediConnect.clinica.domain.dto.request.SolicitarResetRequestDTO;
 import com.Backend.MediConnect.clinica.domain.dto.response.LoginResponseDTO;
+import com.Backend.MediConnect.clinica.domain.dto.response.RegistroPacienteResponseDTO;
 import com.Backend.MediConnect.clinica.domain.dto.response.ReniecResponseDTO;
 import com.Backend.MediConnect.clinica.domain.dto.response.UsuarioResponseDTO;
 import com.Backend.MediConnect.clinica.domain.exception.BusinessException;
@@ -107,7 +108,7 @@ public class AuthService {
         String nombreCompleto = String.join(" ",
                 safe(persona.getNombres()), safe(persona.getApellidoPaterno()), safe(persona.getApellidoMaterno())).trim();
 
-        String enlace = frontendUrl + "restablecer-password?token=" + token;
+        String enlace = frontendUrl + "portal-web?token=" + token;
         emailService.enviarCorreoBloqueo(usuario.getCorreo(), nombreCompleto, enlace);
     }
 
@@ -133,7 +134,7 @@ public class AuthService {
     }
 
     @Transactional
-    public UsuarioResponseDTO registrarPaciente(RegistroPacienteRequestDTO request) {
+    public RegistroPacienteResponseDTO registrarPaciente(RegistroPacienteRequestDTO request) {
         if (usuarioRepository.existsByCorreo(request.getCorreo())) {
             throw new BusinessException("El correo ya está registrado.");
         }
@@ -188,7 +189,7 @@ public class AuthService {
                 rolPaciente.getDescripcionFuncionalidades()
         );
 
-        return usuarioMapper.toResponse(usuario, persona);
+        return usuarioMapper.toRegistroResponse(usuario, persona);
     }
 
     private LocalDate parsearFecha(String fecha) {

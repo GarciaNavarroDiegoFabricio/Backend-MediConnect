@@ -13,6 +13,7 @@ public class EspecialidadMapper {
                 .idEspecialidad(especialidad.getIdEspecialidad())
                 .nombre(especialidad.getNombre())
                 .descripcion(especialidad.getDescripcion())
+                .foto(especialidad.getFoto())
                 .fechaCreacion(especialidad.getFechaCreacion())
                 .usuarioCreacion(especialidad.getUsuarioCreacion())
                 .fechaModificacion(especialidad.getFechaModificacion())
@@ -25,6 +26,7 @@ public class EspecialidadMapper {
                 .idEspecialidad(especialidad.getIdEspecialidad())
                 .nombre(especialidad.getNombre())
                 .descripcion(especialidad.getDescripcion())
+                .foto(especialidad.getFoto())
                 .build();
     }
 }

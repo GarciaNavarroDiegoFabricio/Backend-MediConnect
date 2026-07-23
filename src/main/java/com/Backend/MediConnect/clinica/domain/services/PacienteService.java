@@ -87,7 +87,6 @@ public class PacienteService {
         if (request.getContactoEmergenciaNombre() != null) paciente.setContactoEmergenciaNombre(request.getContactoEmergenciaNombre());
         if (request.getContactoEmergenciaTelefono() != null) paciente.setContactoEmergenciaTelefono(request.getContactoEmergenciaTelefono());
         if (request.getContactoEmergenciaParentesco() != null) paciente.setContactoEmergenciaParentesco(request.getContactoEmergenciaParentesco());
-        if (request.getDireccion() != null) persona.setDireccion(request.getDireccion());
 
         pacienteRepository.save(paciente);
         personaRepository.save(persona);

@@ -13,6 +13,7 @@ public class SedePublicaResponseDTO {
     private Long idSede;
     private String nombre;
     private String descripcion;
+    private String direccion;
     private String foto;
     private String estado;
 }

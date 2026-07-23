@@ -1,5 +1,6 @@
 package com.Backend.MediConnect.clinica.web.mapper;
 
+import com.Backend.MediConnect.clinica.domain.dto.response.RegistroPacienteResponseDTO;
 import com.Backend.MediConnect.clinica.domain.dto.response.UsuarioResponseDTO;
 import com.Backend.MediConnect.clinica.domain.interfaces.RolUsuario;
 import com.Backend.MediConnect.clinica.persistance.entity.Persona;
@@ -34,6 +35,15 @@ public class UsuarioMapper {
                 .fotoPerfil(persona != null ? persona.getFotoPerfil() : null)
                 .fechaCreacion(usuario.getFechaCreacion())
                 .fechaModificacion(usuario.getFechaModificacion())
+                .build();
+    }
+
+    public RegistroPacienteResponseDTO toRegistroResponse(Usuario usuario, Persona persona) {
+        return RegistroPacienteResponseDTO.builder()
+                .idUsuario(usuario.getIdUsuario())
+                .nombres(persona != null ? persona.getNombres() : null)
+                .apellidoPaterno(persona != null ? persona.getApellidoPaterno() : null)
+                .apellidoMaterno(persona != null ? persona.getApellidoMaterno() : null)
                 .build();
     }
 }

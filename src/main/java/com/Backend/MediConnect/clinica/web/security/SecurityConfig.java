@@ -85,6 +85,7 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.POST, "/api/medicos/*/completar-datos").hasRole("ADMINISTRADOR_TOTAL")
                         .requestMatchers(HttpMethod.PATCH, "/api/medicos/*/especialidad-sede").hasRole("ADMINISTRADOR_TOTAL")
+                        .requestMatchers(HttpMethod.GET, "/api/medicos/mi-perfil").hasRole("MEDICO")
                         .requestMatchers(HttpMethod.PATCH, "/api/medicos/*/disponibilidad")
                         .hasAnyRole("ADMINISTRADOR_TOTAL", "ADMINISTRADOR_LOCAL", "MEDICO")
                         .requestMatchers(HttpMethod.PATCH, "/api/medicos/*/inactivar")
@@ -105,11 +106,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/pacientes/*/completar-datos")
                         .hasAnyRole("ADMINISTRADOR_TOTAL", "ADMINISTRADOR_LOCAL", "RECEPCIONISTA")
                         .requestMatchers(HttpMethod.PUT, "/api/pacientes/mi-contacto").hasRole("PACIENTE")
+                        .requestMatchers(HttpMethod.GET, "/api/pacientes/mi-contacto").hasRole("PACIENTE")
                         .requestMatchers(HttpMethod.GET, "/api/pacientes/buscar")
                         .hasAnyRole("ADMINISTRADOR_TOTAL", "ADMINISTRADOR_LOCAL", "RECEPCIONISTA")
 
                         .requestMatchers(HttpMethod.POST, "/api/especialidades").hasRole("ADMINISTRADOR_TOTAL")
                         .requestMatchers(HttpMethod.PUT, "/api/especialidades/*").hasRole("ADMINISTRADOR_TOTAL")
+                        .requestMatchers(HttpMethod.PUT, "/api/especialidades/*/foto").hasRole("ADMINISTRADOR_TOTAL")
+                        .requestMatchers(HttpMethod.DELETE, "/api/especialidades/*/foto").hasRole("ADMINISTRADOR_TOTAL")
                         .requestMatchers(HttpMethod.DELETE, "/api/especialidades/*").hasRole("ADMINISTRADOR_TOTAL")
 
                         .requestMatchers(HttpMethod.POST, "/api/sedes").hasRole("ADMINISTRADOR_TOTAL")
