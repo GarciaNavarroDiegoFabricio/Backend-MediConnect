@@ -6,17 +6,22 @@ import com.Backend.MediConnect.clinica.domain.dto.response.PacienteResponseDTO;
 import com.Backend.MediConnect.clinica.domain.exception.BusinessException;
 import com.Backend.MediConnect.clinica.domain.exception.ResourceNotFoundException;
 import com.Backend.MediConnect.clinica.domain.interfaces.RolUsuario;
+import com.Backend.MediConnect.clinica.domain.repository.ICitaRepository;
 import com.Backend.MediConnect.clinica.domain.repository.IPacienteRepository;
 import com.Backend.MediConnect.clinica.domain.repository.IPersonaRepository;
 import com.Backend.MediConnect.clinica.domain.repository.IUsuarioRepository;
+import com.Backend.MediConnect.clinica.persistance.entity.Cita;
 import com.Backend.MediConnect.clinica.persistance.entity.Paciente;
 import com.Backend.MediConnect.clinica.persistance.entity.Persona;
 import com.Backend.MediConnect.clinica.persistance.entity.Usuario;
+import com.Backend.MediConnect.clinica.web.mapper.PacienteMapper;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Year;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class PacienteService {
@@ -24,12 +29,16 @@ public class PacienteService {
     private final IPacienteRepository pacienteRepository;
     private final IUsuarioRepository usuarioRepository;
     private final IPersonaRepository personaRepository;
+    private final ICitaRepository citaRepository;
+    private final PacienteMapper pacienteMapper;
 
     public PacienteService(IPacienteRepository pacienteRepository, IUsuarioRepository usuarioRepository,
-                           IPersonaRepository personaRepository) {
+            IPersonaRepository personaRepository, ICitaRepository citaRepository, PacienteMapper pacienteMapper) {
         this.pacienteRepository = pacienteRepository;
         this.usuarioRepository = usuarioRepository;
         this.personaRepository = personaRepository;
+        this.citaRepository = citaRepository;
+        this.pacienteMapper = pacienteMapper;
     }
 
     @Transactional
@@ -83,10 +92,14 @@ public class PacienteService {
         Paciente paciente = pacienteRepository.findByPersona_IdPersona(persona.getIdPersona())
                 .orElseThrow(() -> new ResourceNotFoundException("Datos de paciente no encontrados."));
 
-        if (request.getTelefono() != null) paciente.setTelefono(request.getTelefono());
-        if (request.getContactoEmergenciaNombre() != null) paciente.setContactoEmergenciaNombre(request.getContactoEmergenciaNombre());
-        if (request.getContactoEmergenciaTelefono() != null) paciente.setContactoEmergenciaTelefono(request.getContactoEmergenciaTelefono());
-        if (request.getContactoEmergenciaParentesco() != null) paciente.setContactoEmergenciaParentesco(request.getContactoEmergenciaParentesco());
+        if (request.getTelefono() != null)
+            paciente.setTelefono(request.getTelefono());
+        if (request.getContactoEmergenciaNombre() != null)
+            paciente.setContactoEmergenciaNombre(request.getContactoEmergenciaNombre());
+        if (request.getContactoEmergenciaTelefono() != null)
+            paciente.setContactoEmergenciaTelefono(request.getContactoEmergenciaTelefono());
+        if (request.getContactoEmergenciaParentesco() != null)
+            paciente.setContactoEmergenciaParentesco(request.getContactoEmergenciaParentesco());
 
         pacienteRepository.save(paciente);
         personaRepository.save(persona);
@@ -120,8 +133,8 @@ public class PacienteService {
                 || safe(persona.getApellidoPaterno()).toLowerCase().contains(t)
                 || safe(persona.getApellidoMaterno()).toLowerCase().contains(t)
                 || pacienteRepository.findByPersona_IdPersona(persona.getIdPersona())
-                .map(pac -> pac.getCodigoHistoriaClinica().toLowerCase().contains(t))
-                .orElse(false);
+                        .map(pac -> pac.getCodigoHistoriaClinica().toLowerCase().contains(t))
+                        .orElse(false);
     }
 
     private PacienteResponseDTO toResponse(Paciente paciente) {
@@ -146,5 +159,29 @@ public class PacienteService {
 
     private String safe(String valor) {
         return valor != null ? valor : "";
+    }
+
+    public List<PacienteResponseDTO> listarPacientesDelMedico(
+            Long idMedico) {
+
+        List<Cita> citas = citaRepository.findByMedico_IdMedico(idMedico);
+
+        return citas.stream()
+
+                .map(Cita::getPaciente)
+
+                .collect(Collectors.toMap(
+                        Paciente::getIdPaciente,
+                        p -> p,
+                        (p1, p2) -> p1))
+
+                .values()
+
+                .stream()
+
+                .map(pacienteMapper::toResponse)
+
+                .toList();
+
     }
 }

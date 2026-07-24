@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface ISignoVitalRepository extends JpaRepository<SignoVital, Long> {
-    Optional<SignoVital> findByAtencionMedica_IdAtencion(Long idAtencion);
+    Optional<SignoVital> findByConsulta_IdConsulta(Long idConsulta);
 }

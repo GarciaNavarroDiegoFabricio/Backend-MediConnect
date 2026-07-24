@@ -6,7 +6,11 @@ import com.Backend.MediConnect.clinica.domain.dto.request.CitaReprogramarRequest
 import com.Backend.MediConnect.clinica.domain.dto.response.ApiResponse;
 import com.Backend.MediConnect.clinica.domain.dto.response.CitaResponseDTO;
 import com.Backend.MediConnect.clinica.domain.dto.response.HistorialCitaResponseDTO;
+import com.Backend.MediConnect.clinica.domain.exception.ResourceNotFoundException;
+import com.Backend.MediConnect.clinica.domain.repository.IMedicoRepository;
 import com.Backend.MediConnect.clinica.domain.services.CitaService;
+import com.Backend.MediConnect.clinica.persistance.entity.Medico;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,9 +30,11 @@ import java.util.List;
 public class CitaController {
 
     private final CitaService citaService;
+    private final IMedicoRepository medicoRepository;
 
-    public CitaController(CitaService citaService) {
+    public CitaController(CitaService citaService, IMedicoRepository medicoRepository) {
         this.citaService = citaService;
+        this.medicoRepository = medicoRepository;
     }
 
     @PreAuthorize("hasRole('PACIENTE')")
@@ -46,7 +52,8 @@ public class CitaController {
     @Operation(summary = "Reprogramar una cita")
     @PatchMapping("/{id}/reprogramar")
     public ResponseEntity<ApiResponse<CitaResponseDTO>> reprogramar(
-            @PathVariable Long id, @Valid @RequestBody CitaReprogramarRequestDTO request, Authentication authentication) {
+            @PathVariable Long id, @Valid @RequestBody CitaReprogramarRequestDTO request,
+            Authentication authentication) {
         CitaResponseDTO actualizada = citaService.reprogramar(id, request, authentication.getName());
         return ResponseEntity.ok(ApiResponse.success("Cita reprogramada correctamente.", actualizada));
     }
@@ -92,12 +99,17 @@ public class CitaController {
         return ResponseEntity.ok(ApiResponse.success(citaService.consultarHistorial(id)));
     }
 
-    @PreAuthorize("hasRole('PACIENTE')")
-    @Operation(summary = "Listar mis citas")
+    @PreAuthorize("hasRole('MEDICO')")
     @GetMapping("/mis-citas")
-    public ResponseEntity<ApiResponse<List<CitaResponseDTO>>> listarMisCitas(Authentication authentication) {
+    public ResponseEntity<ApiResponse<List<CitaResponseDTO>>> listarMisCitas(
+            Authentication authentication) {
+
         Long idUsuario = (Long) authentication.getPrincipal();
-        return ResponseEntity.ok(ApiResponse.success(citaService.listarPorPaciente(idUsuario)));
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        citaService.listarPorMedicoUsuario(idUsuario)));
+
     }
 
     @PreAuthorize("hasAnyRole('ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_LOCAL', 'RECEPCIONISTA')")
@@ -114,10 +126,4 @@ public class CitaController {
         return ResponseEntity.ok(ApiResponse.success(citaService.listarPorEstado(estado)));
     }
 
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_LOCAL', 'RECEPCIONISTA')")
-    @Operation(summary = "Listar todas las citas")
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<CitaResponseDTO>>> listarTodas() {
-        return ResponseEntity.ok(ApiResponse.success(citaService.listarTodas()));
-    }
 }

@@ -3,6 +3,7 @@ package com.Backend.MediConnect.clinica.web.controller;
 import com.Backend.MediConnect.clinica.domain.dto.request.MedicoComplementoRequestDTO;
 import com.Backend.MediConnect.clinica.domain.dto.response.ApiResponse;
 import com.Backend.MediConnect.clinica.domain.dto.response.MedicoResponseDTO;
+import com.Backend.MediConnect.clinica.domain.dto.response.PacienteResponseDTO;
 import com.Backend.MediConnect.clinica.domain.services.MedicoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -32,7 +33,8 @@ public class MedicoController {
     @Operation(summary = "Completar datos profesionales de un médico ya registrado en /api/usuarios")
     @PostMapping("/{idUsuario}/completar-datos")
     public ResponseEntity<ApiResponse<MedicoResponseDTO>> completarDatos(
-            @PathVariable Long idUsuario, @Valid @RequestBody MedicoComplementoRequestDTO request, Authentication authentication) {
+            @PathVariable Long idUsuario, @Valid @RequestBody MedicoComplementoRequestDTO request,
+            Authentication authentication) {
         MedicoResponseDTO completado = medicoService.completarDatos(idUsuario, request, authentication.getName());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Datos profesionales completados correctamente.", completado));
@@ -56,7 +58,8 @@ public class MedicoController {
     @PatchMapping("/{id}/disponibilidad")
     public ResponseEntity<ApiResponse<MedicoResponseDTO>> actualizarDisponibilidad(
             @PathVariable Long id, @RequestParam Boolean disponible, Authentication authentication) {
-        MedicoResponseDTO actualizado = medicoService.actualizarDisponibilidad(id, disponible, authentication.getName());
+        MedicoResponseDTO actualizado = medicoService.actualizarDisponibilidad(id, disponible,
+                authentication.getName());
         return ResponseEntity.ok(ApiResponse.success("Disponibilidad actualizada correctamente.", actualizado));
     }
 
@@ -109,7 +112,19 @@ public class MedicoController {
         MedicoResponseDTO medico = medicoService.consultarPorIdUsuario(idUsuario);
 
         return ResponseEntity.ok(
-                ApiResponse.success("Información del médico obtenida correctamente.", medico)
-        );
+                ApiResponse.success("Información del médico obtenida correctamente.", medico));
+    }
+
+    @GetMapping("/mis-pacientes")
+    @PreAuthorize("hasRole('MEDICO')")
+    @Operation(summary = "Listar pacientes atendidos por el médico autenticado")
+    public ResponseEntity<ApiResponse<List<PacienteResponseDTO>>> misPacientes(
+            Authentication authentication) {
+
+        Long idUsuario = (Long) authentication.getPrincipal();
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        medicoService.listarPacientesDelMedicoPorUsuario(idUsuario)));
     }
 }

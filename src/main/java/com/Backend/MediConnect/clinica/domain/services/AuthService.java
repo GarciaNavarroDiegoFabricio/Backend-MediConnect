@@ -43,9 +43,9 @@ public class AuthService {
     private String frontendUrl;
 
     public AuthService(IUsuarioRepository usuarioRepository, IPersonaRepository personaRepository,
-                       PasswordEncoder passwordEncoder, JwtService jwtService, IReniecService reniecService,
-                       EmailService emailService, UsuarioMapper usuarioMapper,
-                       IntentoFallidoService intentoFallidoService) {
+            PasswordEncoder passwordEncoder, JwtService jwtService, IReniecService reniecService,
+            EmailService emailService, UsuarioMapper usuarioMapper,
+            IntentoFallidoService intentoFallidoService) {
         this.usuarioRepository = usuarioRepository;
         this.personaRepository = personaRepository;
         this.passwordEncoder = passwordEncoder;
@@ -58,30 +58,83 @@ public class AuthService {
 
     @Transactional
     public LoginResponseDTO login(LoginRequestDTO request) {
+
+        System.out.println("========== INICIO LOGIN ==========");
+        System.out.println("DNI recibido: " + request.getDni());
+        System.out.println("Contraseña recibida: " + request.getContrasena());
+
         Persona persona = personaRepository.findByDni(request.getDni())
-                .orElseThrow(() -> new ResourceNotFoundException("Credenciales incorrectas."));
+                .orElseThrow(() -> {
+                    System.out.println("ERROR: DNI no encontrado");
+                    return new ResourceNotFoundException("Credenciales incorrectas.");
+                });
+
+        System.out.println("Persona encontrada:");
+        System.out.println("ID Persona: " + persona.getIdPersona());
+        System.out.println("Nombre: " + persona.getNombres());
+        System.out.println("Apellido paterno: " + persona.getApellidoPaterno());
 
         Usuario usuario = persona.getUsuario();
 
+        if (usuario == null) {
+            System.out.println("ERROR: La persona no tiene usuario asociado");
+            throw new BusinessException("Credenciales incorrectas.");
+        }
+
+        System.out.println("Usuario encontrado:");
+        System.out.println("ID Usuario: " + usuario.getIdUsuario());
+        System.out.println("Rol: " + usuario.getIdRol());
+        System.out.println("Estado: " + usuario.getEstado());
+        System.out.println("Hash guardado: " + usuario.getContrasenaHash());
+
         if ("BLOQUEADO".equals(usuario.getEstado())) {
-            throw new BusinessException("Su cuenta está bloqueada. Revise su correo para restablecer la contraseña.");
+            System.out.println("Usuario bloqueado");
+
+            throw new BusinessException(
+                    "Su cuenta está bloqueada. Revise su correo para restablecer la contraseña.");
         }
 
         if ("INACTIVO".equals(usuario.getEstado())) {
-            throw new BusinessException("Su cuenta está inactiva. Contacte al administrador.");
+            System.out.println("Usuario inactivo");
+
+            throw new BusinessException(
+                    "Su cuenta está inactiva. Contacte al administrador.");
         }
 
-        if (!passwordEncoder.matches(request.getContrasena(), usuario.getContrasenaHash())) {
-            intentoFallidoService.registrarIntentoFallido(usuario.getIdUsuario(), persona.getNombres(),
-                    persona.getApellidoPaterno(), persona.getApellidoMaterno());
+        boolean passwordCorrecta = passwordEncoder.matches(
+                request.getContrasena(),
+                usuario.getContrasenaHash());
+
+        System.out.println("¿Contraseña correcta?: " + passwordCorrecta);
+
+        if (!passwordCorrecta) {
+
+            System.out.println("ERROR: Contraseña incorrecta");
+
+            intentoFallidoService.registrarIntentoFallido(
+                    usuario.getIdUsuario(),
+                    persona.getNombres(),
+                    persona.getApellidoPaterno(),
+                    persona.getApellidoMaterno());
+
             throw new BusinessException("Credenciales incorrectas.");
         }
+
+        System.out.println("Login exitoso");
 
         usuario.setIntentosFallidos(0);
         usuarioRepository.save(usuario);
 
-        String accessToken = jwtService.generarAccessToken(usuario.getIdUsuario(), usuario.getIdRol());
-        String refreshToken = jwtService.generarRefreshToken(usuario.getIdUsuario(), usuario.getIdRol());
+        String accessToken = jwtService.generarAccessToken(
+                usuario.getIdUsuario(),
+                usuario.getIdRol());
+
+        String refreshToken = jwtService.generarRefreshToken(
+                usuario.getIdUsuario(),
+                usuario.getIdRol());
+
+        System.out.println("Token generado correctamente");
+        System.out.println("========== FIN LOGIN ==========");
 
         return LoginResponseDTO.builder()
                 .accessToken(accessToken)
@@ -106,7 +159,8 @@ public class AuthService {
         usuarioRepository.save(usuario);
 
         String nombreCompleto = String.join(" ",
-                safe(persona.getNombres()), safe(persona.getApellidoPaterno()), safe(persona.getApellidoMaterno())).trim();
+                safe(persona.getNombres()), safe(persona.getApellidoPaterno()), safe(persona.getApellidoMaterno()))
+                .trim();
 
         String enlace = frontendUrl + "portal-web?token=" + token;
         emailService.enviarCorreoBloqueo(usuario.getCorreo(), nombreCompleto, enlace);
@@ -178,7 +232,8 @@ public class AuthService {
         Persona persona = personaRepository.save(builder.build());
 
         String nombreCompleto = String.join(" ",
-                safe(persona.getNombres()), safe(persona.getApellidoPaterno()), safe(persona.getApellidoMaterno())).trim();
+                safe(persona.getNombres()), safe(persona.getApellidoPaterno()), safe(persona.getApellidoMaterno()))
+                .trim();
 
         RolUsuario rolPaciente = RolUsuario.PACIENTE;
 
@@ -186,8 +241,7 @@ public class AuthService {
                 usuario.getCorreo(),
                 nombreCompleto.isBlank() ? "Paciente MediConnect" : nombreCompleto,
                 rolPaciente.getNombre(),
-                rolPaciente.getDescripcionFuncionalidades()
-        );
+                rolPaciente.getDescripcionFuncionalidades());
 
         return usuarioMapper.toRegistroResponse(usuario, persona);
     }

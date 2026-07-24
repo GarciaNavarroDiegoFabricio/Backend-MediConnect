@@ -9,9 +9,9 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class HistoriaClinicaResponseDTO {
+public class ExpedienteClinicoResponseDTO {
 
-    private Long idHistoria;
+    private Long idExpediente;
 
     private Long idPaciente;
 
@@ -19,9 +19,10 @@ public class HistoriaClinicaResponseDTO {
 
     private LocalDateTime fechaCreacion;
 
-    private List<AntecedentePacienteResponseDTO> antecedentes;
+    private String estado;
+
+    private AntecedentePacienteResponseDTO antecedentes;
 
     private List<ConsultaResponseDTO> consultas;
 
-    private List<DocumentoClinicoResponseDTO> documentos;
 }

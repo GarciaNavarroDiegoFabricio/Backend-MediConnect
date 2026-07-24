@@ -1,9 +1,7 @@
 package com.Backend.MediConnect.clinica.web.mapper;
 
-import com.Backend.MediConnect.clinica.domain.dto.response.DetalleRecetaResponseDTO;
-import com.Backend.MediConnect.clinica.domain.dto.response.RecetaResponseDTO;
-import com.Backend.MediConnect.clinica.persistance.entity.DetalleReceta;
-import com.Backend.MediConnect.clinica.persistance.entity.Receta;
+import com.Backend.MediConnect.clinica.domain.dto.response.*;
+import com.Backend.MediConnect.clinica.persistance.entity.*;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -11,41 +9,100 @@ import java.util.List;
 @Component
 public class RecetaMapper {
 
-    public DetalleRecetaResponseDTO toResponse(DetalleReceta detalle) {
-        return DetalleRecetaResponseDTO.builder()
-                .idDetalleReceta(detalle.getIdDetalleReceta())
-                .medicamento(detalle.getMedicamento())
-                .dosis(detalle.getDosis())
-                .frecuencia(detalle.getFrecuencia())
-                .duracion(detalle.getDuracion())
-                .indicaciones(detalle.getIndicaciones())
-                .build();
-    }
+        public DetalleRecetaResponseDTO toResponse(
+                        DetalleReceta detalle) {
 
-    public RecetaResponseDTO toResponse(Receta receta, List<DetalleReceta> detalles) {
-        return RecetaResponseDTO.builder()
-                .idReceta(receta.getIdReceta())
-                .idAtencion(receta.getAtencionMedica().getIdAtencion())
-                .codigoReceta(receta.getCodigoReceta())
-                .nombrePaciente(construirNombre(
-                        receta.getAtencionMedica().getCita().getPaciente().getPersona().getNombres(),
-                        receta.getAtencionMedica().getCita().getPaciente().getPersona().getApellidoPaterno(),
-                        receta.getAtencionMedica().getCita().getPaciente().getPersona().getApellidoMaterno()))
-                .nombreMedico(construirNombre(
-                        receta.getAtencionMedica().getCita().getMedico().getPersona().getNombres(),
-                        receta.getAtencionMedica().getCita().getMedico().getPersona().getApellidoPaterno(),
-                        receta.getAtencionMedica().getCita().getMedico().getPersona().getApellidoMaterno()))
-                .especialidad(receta.getAtencionMedica().getCita().getMedico().getEspecialidad().getNombre())
-                .observaciones(receta.getObservaciones())
-                .fechaEmision(receta.getFechaEmision())
-                .detalles(detalles.stream().map(this::toResponse).toList())
-                .build();
-    }
+                return DetalleRecetaResponseDTO.builder()
+                                .idDetalleReceta(detalle.getIdDetalleReceta())
+                                .medicamento(detalle.getMedicamento())
+                                .dosis(detalle.getDosis())
+                                .frecuencia(detalle.getFrecuencia())
+                                .duracion(detalle.getDuracion())
+                                .indicaciones(detalle.getIndicaciones())
+                                .build();
 
-    private String construirNombre(String nombres, String apellidoPaterno, String apellidoMaterno) {
-        return String.join(" ",
-                nombres != null ? nombres : "",
-                apellidoPaterno != null ? apellidoPaterno : "",
-                apellidoMaterno != null ? apellidoMaterno : "").trim();
-    }
+        }
+
+        public RecetaResponseDTO toResponse(
+                        Receta receta,
+                        List<DetalleReceta> detalles) {
+
+                return RecetaResponseDTO.builder()
+                                .idReceta(receta.getIdReceta())
+                                .idConsulta(receta.getConsulta().getIdConsulta())
+                                .nombrePaciente(
+                                                construirNombre(
+                                                                receta.getPaciente()
+                                                                                .getPersona()
+                                                                                .getNombres(),
+
+                                                                receta.getPaciente()
+                                                                                .getPersona()
+                                                                                .getApellidoPaterno(),
+
+                                                                receta.getPaciente()
+                                                                                .getPersona()
+                                                                                .getApellidoMaterno()))
+                                .nombreMedico(
+                                                construirNombre(
+                                                                receta.getMedico()
+                                                                                .getPersona()
+                                                                                .getNombres(),
+
+                                                                receta.getMedico()
+                                                                                .getPersona()
+                                                                                .getApellidoPaterno(),
+
+                                                                receta.getMedico()
+                                                                                .getPersona()
+                                                                                .getApellidoMaterno()))
+                                .prescripcion(receta.getPrescripcion())
+                                .fecha(receta.getFecha())
+                                .detalles(
+                                                detalles.stream()
+                                                                .map(this::toResponse)
+                                                                .toList())
+                                .build();
+
+        }
+
+        private String construirNombre(
+                        String nombres,
+                        String paterno,
+                        String materno) {
+
+                return String.join(" ",
+                                nombres != null ? nombres : "",
+                                paterno != null ? paterno : "",
+                                materno != null ? materno : "")
+                                .trim();
+
+        }
+
+        private DetalleRecetaResponseDTO detalleToResponse(
+                        DetalleReceta detalle) {
+
+                return DetalleRecetaResponseDTO.builder()
+
+                                .idDetalleReceta(
+                                                detalle.getIdDetalleReceta())
+
+                                .medicamento(
+                                                detalle.getMedicamento())
+
+                                .dosis(
+                                                detalle.getDosis())
+
+                                .frecuencia(
+                                                detalle.getFrecuencia())
+
+                                .duracion(
+                                                detalle.getDuracion())
+
+                                .indicaciones(
+                                                detalle.getIndicaciones())
+
+                                .build();
+        }
+
 }

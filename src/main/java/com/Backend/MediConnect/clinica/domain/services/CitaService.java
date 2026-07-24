@@ -39,8 +39,8 @@ public class CitaService {
     private final EmailService emailService;
 
     public CitaService(ICitaRepository citaRepository, IHistorialCitaRepository historialCitaRepository,
-                       IPacienteRepository pacienteRepository, IMedicoRepository medicoRepository,
-                       CitaMapper citaMapper, EmailService emailService) {
+            IPacienteRepository pacienteRepository, IMedicoRepository medicoRepository,
+            CitaMapper citaMapper, EmailService emailService) {
         this.citaRepository = citaRepository;
         this.historialCitaRepository = historialCitaRepository;
         this.pacienteRepository = pacienteRepository;
@@ -82,7 +82,8 @@ public class CitaService {
                 .horaFin(request.getHoraFin())
                 .modalidad(request.getModalidad().toUpperCase())
                 .enlaceVideollamada("VIRTUAL".equalsIgnoreCase(request.getModalidad())
-                        ? generarEnlaceVideollamada() : null)
+                        ? generarEnlaceVideollamada()
+                        : null)
                 .motivoConsulta(request.getMotivoConsulta())
                 .idPago(request.getIdPago())
                 .estado("CONFIRMADA")
@@ -112,7 +113,7 @@ public class CitaService {
     }
 
     private void validarDisponibilidadHorario(Long idMedico, LocalDate fecha, LocalTime horaInicio,
-                                              LocalTime horaFin, Long idCitaExcluir) {
+            LocalTime horaFin, Long idCitaExcluir) {
         List<Cita> citasDelDia = citaRepository.findByMedico_IdMedicoAndFechaCita(idMedico, fecha);
 
         boolean hayCruce = citasDelDia.stream()
@@ -223,7 +224,7 @@ public class CitaService {
     }
 
     private void registrarHistorial(Cita cita, String estadoAnterior, String estadoNuevo,
-                                    String motivo, String usuarioCambio) {
+            String motivo, String usuarioCambio) {
         HistorialCita historial = HistorialCita.builder()
                 .cita(cita)
                 .estadoAnterior(estadoAnterior)
@@ -271,5 +272,16 @@ public class CitaService {
         return citaRepository.findAll().stream()
                 .map(citaMapper::toResponse)
                 .toList();
+    }
+
+    public List<CitaResponseDTO> listarPorMedicoUsuario(Long idUsuario) {
+
+        Medico medico = medicoRepository
+                .findByPersona_Usuario_IdUsuario(idUsuario)
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Médico no encontrado"));
+
+        return listarPorMedico(medico.getIdMedico());
+
     }
 }

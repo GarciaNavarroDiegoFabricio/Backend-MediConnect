@@ -2,6 +2,7 @@ package com.Backend.MediConnect.clinica.domain.services;
 
 import com.Backend.MediConnect.clinica.domain.dto.request.MedicoComplementoRequestDTO;
 import com.Backend.MediConnect.clinica.domain.dto.response.MedicoResponseDTO;
+import com.Backend.MediConnect.clinica.domain.dto.response.PacienteResponseDTO;
 import com.Backend.MediConnect.clinica.domain.exception.BusinessException;
 import com.Backend.MediConnect.clinica.domain.exception.ResourceNotFoundException;
 import com.Backend.MediConnect.clinica.domain.interfaces.RolUsuario;
@@ -10,8 +11,10 @@ import com.Backend.MediConnect.clinica.persistance.entity.*;
 import com.Backend.MediConnect.clinica.web.mapper.MedicoMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.Backend.MediConnect.clinica.web.mapper.PacienteMapper;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class MedicoService {
@@ -22,20 +25,32 @@ public class MedicoService {
     private final IEspecialidadRepository especialidadRepository;
     private final ISedeRepository sedeRepository;
     private final MedicoMapper medicoMapper;
+    private final ICitaRepository citaRepository;
+    private final PacienteMapper pacienteMapper;
 
-    public MedicoService(IMedicoRepository medicoRepository, IUsuarioRepository usuarioRepository,
-                         IPersonaRepository personaRepository, IEspecialidadRepository especialidadRepository,
-                         ISedeRepository sedeRepository, MedicoMapper medicoMapper) {
+    public MedicoService(
+            IMedicoRepository medicoRepository,
+            IUsuarioRepository usuarioRepository,
+            IPersonaRepository personaRepository,
+            IEspecialidadRepository especialidadRepository,
+            ISedeRepository sedeRepository,
+            MedicoMapper medicoMapper,
+            ICitaRepository citaRepository,
+            PacienteMapper pacienteMapper) {
+
         this.medicoRepository = medicoRepository;
         this.usuarioRepository = usuarioRepository;
         this.personaRepository = personaRepository;
         this.especialidadRepository = especialidadRepository;
         this.sedeRepository = sedeRepository;
         this.medicoMapper = medicoMapper;
+        this.citaRepository = citaRepository;
+        this.pacienteMapper = pacienteMapper;
     }
 
     @Transactional
-    public MedicoResponseDTO completarDatos(Long idUsuario, MedicoComplementoRequestDTO request, String usuarioCreacion) {
+    public MedicoResponseDTO completarDatos(Long idUsuario, MedicoComplementoRequestDTO request,
+            String usuarioCreacion) {
         Usuario usuario = usuarioRepository.findById(idUsuario)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado."));
 
@@ -75,7 +90,8 @@ public class MedicoService {
     }
 
     @Transactional
-    public MedicoResponseDTO actualizarSedeYEspecialidad(Long idMedico, Long idEspecialidad, Long idSede, String usuarioModificacion) {
+    public MedicoResponseDTO actualizarSedeYEspecialidad(Long idMedico, Long idEspecialidad, Long idSede,
+            String usuarioModificacion) {
         Medico medico = medicoRepository.findById(idMedico)
                 .orElseThrow(() -> new ResourceNotFoundException("Médico no encontrado."));
 
@@ -171,5 +187,49 @@ public class MedicoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Datos del médico no encontrados."));
 
         return medicoMapper.toResponse(medico);
+    }
+
+    public List<PacienteResponseDTO> listarPacientesDelMedico(
+            Long idMedico) {
+
+        List<Cita> citas = citaRepository
+                .findByMedico_IdMedico(idMedico);
+
+        return citas.stream()
+
+                .map(Cita::getPaciente)
+
+                .collect(Collectors.toMap(
+                        Paciente::getIdPaciente,
+                        p -> p,
+                        (p1, p2) -> p1))
+
+                .values()
+
+                .stream()
+
+                .map(pacienteMapper::toResponse)
+
+                .toList();
+
+    }
+
+    public Medico obtenerEntidadPorIdUsuario(Long idUsuario) {
+
+        return medicoRepository
+                .findByPersona_Usuario_IdUsuario(idUsuario)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Médico no encontrado"));
+
+    }
+
+    public List<PacienteResponseDTO> listarPacientesDelMedicoPorUsuario(
+            Long idUsuario) {
+
+        Medico medico = obtenerEntidadPorIdUsuario(idUsuario);
+
+        return listarPacientesDelMedico(
+                medico.getIdMedico());
+
     }
 }

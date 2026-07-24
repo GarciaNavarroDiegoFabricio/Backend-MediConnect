@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface IRecetaRepository extends JpaRepository<Receta, Long> {
-    Optional<Receta> findByAtencionMedica_IdAtencion(Long idAtencion);
-    boolean existsByCodigoReceta(String codigoReceta);
-    List<Receta> findByAtencionMedica_Cita_Paciente_IdPaciente(Long idPaciente);
+
+    Optional<Receta> findByConsulta_IdConsulta(Long idConsulta);
+
+    List<Receta> findByPaciente_IdPaciente(Long idPaciente);
+
 }

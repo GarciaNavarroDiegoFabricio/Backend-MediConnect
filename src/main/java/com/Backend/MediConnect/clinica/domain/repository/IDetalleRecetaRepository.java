@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface IDetalleRecetaRepository extends JpaRepository<DetalleReceta, Long> {
     List<DetalleReceta> findByReceta_IdReceta(Long idReceta);
+
+    void deleteByReceta_IdReceta(Long idReceta);
 }

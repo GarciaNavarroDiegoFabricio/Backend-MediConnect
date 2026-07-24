@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -13,13 +14,19 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class RecetaResponseDTO {
+
     private Long idReceta;
-    private Long idAtencion;
-    private String codigoReceta;
+
+    private Long idConsulta;
+
     private String nombrePaciente;
+
     private String nombreMedico;
-    private String especialidad;
-    private String observaciones;
-    private LocalDateTime fechaEmision;
+
+    private String prescripcion;
+
+    private LocalDate fecha;
+
     private List<DetalleRecetaResponseDTO> detalles;
+
 }

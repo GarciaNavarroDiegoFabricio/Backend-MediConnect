@@ -1,30 +1,26 @@
 package com.Backend.MediConnect.clinica.persistance.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "receta")
+@Table(name = "consulta")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Receta {
+public class Consulta {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_receta")
-    private Long idReceta;
+    @Column(name = "id_consulta")
+    private Long idConsulta;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_consulta")
-    private Consulta consulta;
+    @JoinColumn(name = "id_cita")
+    private Cita cita;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_medico")
@@ -34,9 +30,13 @@ public class Receta {
     @JoinColumn(name = "id_paciente")
     private Paciente paciente;
 
-    @Column(name = "fecha")
-    private LocalDate fecha;
+    @Column(name = "estado")
+    private String estado;
 
-    @Column(name = "prescripcion")
-    private String prescripcion;
+    @Column(name = "hora_inicio")
+    private LocalDateTime horaInicio;
+
+    @Column(name = "hora_fin")
+    private LocalDateTime horaFin;
+
 }

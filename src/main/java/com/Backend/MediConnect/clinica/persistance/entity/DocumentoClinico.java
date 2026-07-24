@@ -22,33 +22,23 @@ public class DocumentoClinico {
     private Long idDocumento;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_historia", nullable = false)
-    private HistoriaClinica historiaClinica;
+    @JoinColumn(name = "id_consulta", nullable = false)
+    private Consulta consulta;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_atencion")
-    private AtencionMedica atencionMedica;
-
-    @Column(name = "nombre_archivo", nullable = false, length = 255)
+    @Column(name = "nombre_archivo")
     private String nombreArchivo;
 
-    @Column(name = "url_archivo", nullable = false, length = 500)
-    private String urlArchivo;
-
-    @Column(name = "url_archivo_public_id", length = 255)
-    private String urlArchivoPublicId;
-
-    @Column(name = "tipo_documento", length = 50)
+    @Column(name = "tipo_documento")
     private String tipoDocumento;
 
-    @Column(name = "fecha_carga", nullable = false)
-    private LocalDateTime fechaCarga;
+    @Column(name = "ruta_archivo")
+    private String rutaArchivo;
 
-    @Column(name = "usuario_carga", length = 100)
-    private String usuarioCarga;
+    @Column(name = "fecha_subida")
+    private LocalDateTime fechaSubida;
 
     @PrePersist
     public void prePersist() {
-        this.fechaCarga = LocalDateTime.now();
+        fechaSubida = LocalDateTime.now();
     }
 }

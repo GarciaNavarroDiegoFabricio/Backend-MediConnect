@@ -66,7 +66,7 @@ public class PacienteController {
         PacienteResponseDTO paciente = pacienteService.consultarPorIdUsuario(idUsuario);
 
         return ResponseEntity.ok(
-                ApiResponse.success("Datos de contacto obtenidos correctamente.", paciente)
-        );
+                ApiResponse.success("Datos de contacto obtenidos correctamente.", paciente));
     }
+
 }
